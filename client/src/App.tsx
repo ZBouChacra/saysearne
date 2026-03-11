@@ -5,30 +5,45 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Search from "./pages/Search";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import ProfessionalProfile from "./pages/ProfessionalProfile";
+import Profile from "./pages/Profile";
+import BookAppointment from "./pages/BookAppointment";
+import Appointments from "./pages/Appointments";
+import Chats from "./pages/Chats";
+import Alerts from "./pages/Alerts";
+import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+      <Route path="/" component={Home} />
+      <Route path="/search" component={Search} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/professional/:id" component={ProfessionalProfile} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/book/:id" component={BookAppointment} />
+      <Route path="/appointments" component={Appointments} />
+      <Route path="/chats" component={Chats} />
+      <Route path="/alerts" component={Alerts} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/admin" component={Admin} />
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
-        // switchable
+        defaultTheme="dark"
+        switchable
       >
         <TooltipProvider>
           <Toaster />
