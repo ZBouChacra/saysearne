@@ -86,3 +86,18 @@
 - [x] Contact tests (send)
 - [x] Admin tests (stats, users, forbidden for non-admin, ads list, contacts)
 - [x] Protected route tests (profile, appointments, chat, alerts, reviews)
+
+## Bilingual & Localization (New)
+- [x] i18n system with English and Arabic translations
+- [x] RTL layout support for Arabic
+- [x] Language switcher in Navbar
+- [x] Default mode changed to light
+
+## Country/City & Office (New)
+- [x] Add country field to user profile
+- [x] Professional profiles are country/city specific
+- [x] Team members count per country
+- [x] Office/physical location flag and address per profession
+- [x] Country/city filters in search
+- [x] Update professional profile page with country/city/office info
+- [x] Update search filters for country and city

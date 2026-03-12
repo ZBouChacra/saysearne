@@ -43,6 +43,9 @@ export const appRouter = router({
       minAge: z.number().optional(),
       maxAge: z.number().optional(),
       nationality: z.string().optional(),
+      country: z.string().optional(),
+      city: z.string().optional(),
+      hasOffice: z.boolean().optional(),
       minStars: z.number().optional(),
       minCost: z.number().optional(),
       maxCost: z.number().optional(),
@@ -102,9 +105,11 @@ export const appRouter = router({
       sex: z.enum(['male', 'female']).optional(),
       dateOfBirth: z.string().optional(),
       nationality: z.string().optional(),
+      country: z.string().optional(),
       bio: z.string().optional(),
       profilePhoto: z.string().optional(),
       bannerPhoto: z.string().optional(),
+      preferredLanguage: z.enum(['en', 'ar']).optional(),
     })).mutation(async ({ ctx, input }) => {
       const data: any = { ...input };
       if (input.dateOfBirth) data.dateOfBirth = new Date(input.dateOfBirth);
@@ -117,8 +122,14 @@ export const appRouter = router({
       costPerHour: z.string().optional(),
       yearsOfExperience: z.number().optional(),
       website: z.string().optional(),
+      country: z.string().optional(),
+      city: z.string().optional(),
       hasTeam: z.boolean().optional(),
       teamSize: z.number().optional(),
+      hasOffice: z.boolean().optional(),
+      officeAddress: z.string().optional(),
+      officeCity: z.string().optional(),
+      officeCountry: z.string().optional(),
       geographicAreas: z.array(z.string()).optional(),
     })).mutation(async ({ ctx, input }) => {
       const id = await db.createProfession({ ...input, userId: ctx.user.id });
@@ -129,8 +140,14 @@ export const appRouter = router({
       costPerHour: z.string().optional(),
       yearsOfExperience: z.number().optional(),
       website: z.string().optional(),
+      country: z.string().optional(),
+      city: z.string().optional(),
       hasTeam: z.boolean().optional(),
       teamSize: z.number().optional(),
+      hasOffice: z.boolean().optional(),
+      officeAddress: z.string().optional(),
+      officeCity: z.string().optional(),
+      officeCountry: z.string().optional(),
       geographicAreas: z.array(z.string()).optional(),
       isLocked: z.boolean().optional(),
     })).mutation(async ({ ctx, input }) => {

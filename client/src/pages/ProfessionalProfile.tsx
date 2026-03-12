@@ -6,25 +6,29 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Star, Crown, Award, MapPin, Users, DollarSign, Calendar, MessageSquare,
-  Loader2, Globe, Clock, Briefcase, ChevronLeft
+  Loader2, Globe, Clock, Briefcase, ChevronLeft, Building2
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
 
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
 export default function ProfessionalProfile() {
   const { id } = useParams<{ id: string }>();
   const userId = Number(id);
   const { user, isAuthenticated } = useAuth();
+  const { t, lang } = useLanguage();
+  const DAYS = lang === "ar" ? DAYS_AR : DAYS_EN;
 
   const { data: profile, isLoading } = trpc.professionals.profile.useQuery({ userId });
   const { data: reviewsData } = trpc.reviews.byProfessional.useQuery({ professionalId: userId });
 
   const startChatMutation = trpc.chat.startChat.useMutation({
-    onSuccess: () => toast.success("Chat started! Go to your Chats to continue."),
+    onSuccess: () => toast.success(t("profProfile.chatStarted")),
     onError: (err) => toast.error(err.message),
   });
 
@@ -44,7 +48,7 @@ export default function ProfessionalProfile() {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">Professional not found</p>
+          <p className="text-muted-foreground">{t("profProfile.notFound")}</p>
         </div>
         <Footer />
       </div>
@@ -62,7 +66,7 @@ export default function ProfessionalProfile() {
       <div className="container py-8 flex-1">
         <Link href="/search">
           <Button variant="ghost" size="sm" className="gap-1 mb-4">
-            <ChevronLeft className="h-4 w-4" /> Back to Search
+            <ChevronLeft className="h-4 w-4" /> {t("profProfile.backToSearch")}
           </Button>
         </Link>
 
@@ -86,12 +90,12 @@ export default function ProfessionalProfile() {
                   <div className="flex items-center gap-2 mt-1">
                     {profile.isPremium && (
                       <Badge className="gap-1 bg-primary text-primary-foreground">
-                        <Crown className="h-3 w-3" /> Premium
+                        <Crown className="h-3 w-3" /> {t("common.premium")}
                       </Badge>
                     )}
                     {profile.isStarred && (
                       <Badge variant="outline" className="gap-1 border-primary text-primary">
-                        <Award className="h-3 w-3" /> Starred
+                        <Award className="h-3 w-3" /> {t("common.starred")}
                       </Badge>
                     )}
                   </div>
@@ -101,7 +105,7 @@ export default function ProfessionalProfile() {
                   <div className="flex gap-2">
                     <Link href={`/book/${userId}`}>
                       <Button className="gap-2">
-                        <Calendar className="h-4 w-4" /> Book Appointment
+                        <Calendar className="h-4 w-4" /> {t("profProfile.bookAppointment")}
                       </Button>
                     </Link>
                     <Button
@@ -110,7 +114,7 @@ export default function ProfessionalProfile() {
                       onClick={() => startChatMutation.mutate({ userId })}
                       disabled={startChatMutation.isPending}
                     >
-                      <MessageSquare className="h-4 w-4" /> Chat
+                      <MessageSquare className="h-4 w-4" /> {t("profProfile.chat")}
                     </Button>
                   </div>
                 )}
@@ -126,9 +130,9 @@ export default function ProfessionalProfile() {
         {/* Tabs */}
         <Tabs defaultValue="professions">
           <TabsList>
-            <TabsTrigger value="professions">Services ({profile.professions.length})</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews ({reviewsData?.length || 0})</TabsTrigger>
-            <TabsTrigger value="availability">Availability</TabsTrigger>
+            <TabsTrigger value="professions">{t("profProfile.services")} ({profile.professions.length})</TabsTrigger>
+            <TabsTrigger value="reviews">{t("profProfile.reviews")} ({reviewsData?.length || 0})</TabsTrigger>
+            <TabsTrigger value="availability">{t("profProfile.availability")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="professions" className="mt-4">
@@ -147,6 +151,14 @@ export default function ProfessionalProfile() {
                       </div>
                     </div>
 
+                    {/* Location */}
+                    {(prof.country || prof.city) && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {[prof.city, prof.country].filter(Boolean).join(", ")}
+                      </p>
+                    )}
+
                     <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                       {prof.costPerHour && (
                         <span className="flex items-center gap-1">
@@ -155,15 +167,27 @@ export default function ProfessionalProfile() {
                       )}
                       {prof.yearsOfExperience && prof.yearsOfExperience > 0 && (
                         <span className="flex items-center gap-1">
-                          <Briefcase className="h-3.5 w-3.5" /> {prof.yearsOfExperience} years
+                          <Briefcase className="h-3.5 w-3.5" /> {prof.yearsOfExperience} {t("profProfile.years")}
                         </span>
                       )}
                       {prof.hasTeam && (
                         <span className="flex items-center gap-1">
-                          <Users className="h-3.5 w-3.5" /> Team of {prof.teamSize}
+                          <Users className="h-3.5 w-3.5" /> {t("common.team")}: {prof.teamSize}
                         </span>
                       )}
                     </div>
+
+                    {/* Office Info */}
+                    {prof.hasOffice && (
+                      <div className="mt-3 p-3 bg-muted/30 border border-border text-sm">
+                        <p className="font-medium flex items-center gap-1 mb-1">
+                          <Building2 className="h-3.5 w-3.5" /> {t("profProfile.office")}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {[prof.officeAddress, prof.officeCity, prof.officeCountry].filter(Boolean).join(", ")}
+                        </p>
+                      </div>
+                    )}
 
                     {prof.images && prof.images.length > 0 && (
                       <div className="flex gap-2 mt-3 overflow-x-auto">
@@ -177,7 +201,7 @@ export default function ProfessionalProfile() {
               </div>
             ) : (
               <div className="text-center py-12 border border-dashed border-border">
-                <p className="text-muted-foreground">No services listed yet</p>
+                <p className="text-muted-foreground">{t("profProfile.noServices")}</p>
               </div>
             )}
           </TabsContent>
@@ -224,7 +248,7 @@ export default function ProfessionalProfile() {
               </div>
             ) : (
               <div className="text-center py-12 border border-dashed border-border">
-                <p className="text-muted-foreground">No reviews yet</p>
+                <p className="text-muted-foreground">{t("profProfile.noReviews")}</p>
               </div>
             )}
           </TabsContent>
@@ -245,7 +269,7 @@ export default function ProfessionalProfile() {
               </div>
             ) : (
               <div className="text-center py-12 border border-dashed border-border">
-                <p className="text-muted-foreground">No availability set</p>
+                <p className="text-muted-foreground">{t("profProfile.noAvailability")}</p>
               </div>
             )}
           </TabsContent>

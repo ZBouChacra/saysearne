@@ -160,6 +160,9 @@ export async function getTopProfessionals(limit = 5) {
       profilePhoto: users.profilePhoto,
       isPremium: users.isPremium,
       isStarred: users.isStarred,
+      country: professions.country,
+      city: professions.city,
+      hasOffice: professions.hasOffice,
     })
     .from(professions)
     .innerJoin(users, eq(professions.userId, users.id))
@@ -179,6 +182,9 @@ export async function searchProfessionals(filters: {
   minAge?: number;
   maxAge?: number;
   nationality?: string;
+  country?: string;
+  city?: string;
+  hasOffice?: boolean;
   minStars?: number;
   minCost?: number;
   maxCost?: number;
@@ -202,6 +208,9 @@ export async function searchProfessionals(filters: {
   if (filters.lastName) conditions.push(like(users.lastName, `%${filters.lastName}%`));
   if (filters.sex) conditions.push(eq(users.sex, filters.sex as any));
   if (filters.nationality) conditions.push(eq(users.nationality, filters.nationality));
+  if (filters.country) conditions.push(eq(professions.country, filters.country));
+  if (filters.city) conditions.push(like(professions.city, `%${filters.city}%`));
+  if (filters.hasOffice) conditions.push(eq(professions.hasOffice, true));
   if (filters.minStars) conditions.push(gte(professions.avgRating, String(filters.minStars)));
   if (filters.minCost) conditions.push(gte(professions.costPerHour, String(filters.minCost)));
   if (filters.maxCost) conditions.push(lte(professions.costPerHour, String(filters.maxCost)));
@@ -245,6 +254,12 @@ export async function searchProfessionals(filters: {
       nationality: users.nationality,
       isPremium: users.isPremium,
       isStarred: users.isStarred,
+      country: professions.country,
+      city: professions.city,
+      hasOffice: professions.hasOffice,
+      officeAddress: professions.officeAddress,
+      officeCity: professions.officeCity,
+      officeCountry: professions.officeCountry,
     })
     .from(professions)
     .innerJoin(users, eq(professions.userId, users.id))

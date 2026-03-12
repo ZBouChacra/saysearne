@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar, Loader2, Check, X, Star, Clock, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -22,11 +23,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function Appointments() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   const { data: appointments, isLoading } = trpc.appointments.list.useQuery(undefined, { enabled: !!user });
   const utils = trpc.useUtils();
 
   const updateStatusMutation = trpc.appointments.updateStatus.useMutation({
-    onSuccess: () => { toast.success("Status updated!"); utils.appointments.list.invalidate(); },
+    onSuccess: () => { toast.success(t("appointments.statusUpdated")); utils.appointments.list.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
 
@@ -41,13 +43,13 @@ export default function Appointments() {
       <Navbar />
       <div className="container py-8 flex-1">
         <h1 className="font-serif text-3xl font-bold mb-6 flex items-center gap-2">
-          <Calendar className="h-7 w-7 text-primary" /> My Appointments
+          <Calendar className="h-7 w-7 text-primary" /> {t("appointments.title")}
         </h1>
 
         <Tabs defaultValue="client">
           <TabsList>
-            <TabsTrigger value="client">As Client ({asClient.length})</TabsTrigger>
-            <TabsTrigger value="professional">As Professional ({asProfessional.length})</TabsTrigger>
+            <TabsTrigger value="client">{t("appointments.asClient")} ({asClient.length})</TabsTrigger>
+            <TabsTrigger value="professional">{t("appointments.asProfessional")} ({asProfessional.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="client" className="mt-4">
@@ -86,7 +88,7 @@ function AppointmentList({ appointments, isLoading, role, userId, onUpdateStatus
   onUpdateStatus: (id: number, status: "approved" | "cancelled" | "completed") => void;
   isPending: boolean;
 }) {
-  const [reviewApptId, setReviewApptId] = useState<number | null>(null);
+  const { t } = useLanguage();
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
@@ -94,7 +96,7 @@ function AppointmentList({ appointments, isLoading, role, userId, onUpdateStatus
     return (
       <div className="text-center py-12 border border-dashed border-border">
         <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-        <p className="text-muted-foreground">No appointments yet</p>
+        <p className="text-muted-foreground">{t("appointments.noAppointments")}</p>
       </div>
     );
   }
@@ -110,7 +112,7 @@ function AppointmentList({ appointments, isLoading, role, userId, onUpdateStatus
                   {role === "client" ? appt.professionalName : appt.clientName}
                 </h3>
                 <Badge variant="outline" className={STATUS_COLORS[appt.status]}>
-                  {appt.status}
+                  {t(`appointments.${appt.status}`)}
                 </Badge>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -126,21 +128,21 @@ function AppointmentList({ appointments, isLoading, role, userId, onUpdateStatus
               {role === "professional" && appt.status === "pending" && (
                 <>
                   <Button size="sm" className="gap-1" onClick={() => onUpdateStatus(appt.id, "approved")} disabled={isPending}>
-                    <Check className="h-3 w-3" /> Approve
+                    <Check className="h-3 w-3" /> {t("appointments.approve")}
                   </Button>
                   <Button size="sm" variant="outline" className="gap-1 text-destructive" onClick={() => onUpdateStatus(appt.id, "cancelled")} disabled={isPending}>
-                    <X className="h-3 w-3" /> Decline
+                    <X className="h-3 w-3" /> {t("appointments.decline")}
                   </Button>
                 </>
               )}
               {role === "professional" && appt.status === "approved" && (
                 <Button size="sm" className="gap-1" onClick={() => onUpdateStatus(appt.id, "completed")} disabled={isPending}>
-                  <CheckCircle className="h-3 w-3" /> Complete
+                  <CheckCircle className="h-3 w-3" /> {t("appointments.complete")}
                 </Button>
               )}
               {role === "client" && appt.status === "pending" && (
                 <Button size="sm" variant="outline" className="gap-1 text-destructive" onClick={() => onUpdateStatus(appt.id, "cancelled")} disabled={isPending}>
-                  <X className="h-3 w-3" /> Cancel
+                  <X className="h-3 w-3" /> {t("appointments.cancel")}
                 </Button>
               )}
               {role === "client" && appt.status === "completed" && (
@@ -155,26 +157,27 @@ function AppointmentList({ appointments, isLoading, role, userId, onUpdateStatus
 }
 
 function ReviewDialog({ appointmentId, professionalId }: { appointmentId: number; professionalId: number }) {
+  const { t } = useLanguage();
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [open, setOpen] = useState(false);
   const utils = trpc.useUtils();
 
   const createReview = trpc.reviews.create.useMutation({
-    onSuccess: () => { toast.success("Review submitted!"); setOpen(false); utils.appointments.list.invalidate(); },
+    onSuccess: () => { toast.success(t("appointments.reviewSubmitted")); setOpen(false); utils.appointments.list.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="gap-1"><Star className="h-3 w-3" /> Review</Button>
+        <Button size="sm" variant="outline" className="gap-1"><Star className="h-3 w-3" /> {t("appointments.review")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle className="font-serif">Leave a Review</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle className="font-serif">{t("appointments.leaveReview")}</DialogTitle></DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Rating</Label>
+            <Label>{t("appointments.ratingLabel")}</Label>
             <div className="flex gap-1 mt-2">
               {[1, 2, 3, 4, 5].map((s) => (
                 <button key={s} onClick={() => setRating(s)} className="focus:outline-none">
@@ -184,15 +187,15 @@ function ReviewDialog({ appointmentId, professionalId }: { appointmentId: number
             </div>
           </div>
           <div>
-            <Label>Comment (optional)</Label>
-            <Textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={3} className="mt-1.5" placeholder="Share your experience..." />
+            <Label>{t("appointments.commentLabel")}</Label>
+            <Textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={3} className="mt-1.5" placeholder={t("appointments.commentPlaceholder")} />
           </div>
           <Button
             className="w-full"
             onClick={() => createReview.mutate({ appointmentId, professionalId, rating, comment: comment || undefined })}
             disabled={createReview.isPending}
           >
-            {createReview.isPending ? "Submitting..." : "Submit Review"}
+            {createReview.isPending ? t("appointments.submitting") : t("appointments.submitReview")}
           </Button>
         </div>
       </DialogContent>

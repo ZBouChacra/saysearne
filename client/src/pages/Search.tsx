@@ -7,11 +7,13 @@ import { Switch } from "@/components/ui/switch";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProfessionalCard from "@/components/ProfessionalCard";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Search as SearchIcon, Filter, Loader2, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "wouter";
 
 export default function Search() {
+  const { t, lang } = useLanguage();
   const searchParams = new URLSearchParams(useSearch());
   const initialCatId = searchParams.get("categoryId");
 
@@ -23,6 +25,9 @@ export default function Search() {
     serviceId: undefined as number | undefined,
     sex: undefined as string | undefined,
     nationality: "",
+    country: "",
+    city: "",
+    hasOffice: undefined as boolean | undefined,
     minStars: undefined as number | undefined,
     minCost: undefined as number | undefined,
     maxCost: undefined as number | undefined,
@@ -64,7 +69,8 @@ export default function Search() {
   const clearFilters = () => {
     setFilters({
       firstName: "", lastName: "", categoryId: undefined, serviceId: undefined,
-      sex: undefined, nationality: "", minStars: undefined, minCost: undefined,
+      sex: undefined, nationality: "", country: "", city: "",
+      hasOffice: undefined, minStars: undefined, minCost: undefined,
       maxCost: undefined, minExperience: undefined, maxExperience: undefined,
       hasTeam: undefined, sortBy: "stars", sortOrder: "desc", page: 1,
     });
@@ -75,19 +81,19 @@ export default function Search() {
       <Navbar />
 
       <div className="container py-8 flex-1">
-        <h1 className="font-serif text-3xl font-bold mb-6">Find Professionals</h1>
+        <h1 className="font-serif text-3xl font-bold mb-6">{t("search.title")}</h1>
 
         {/* Quick Search */}
         <div className="flex gap-3 mb-6">
           <div className="flex-1 flex gap-2">
             <Input
-              placeholder="First name..."
+              placeholder={t("search.firstName")}
               value={filters.firstName}
               onChange={(e) => updateFilter("firstName", e.target.value)}
               className="max-w-xs"
             />
             <Input
-              placeholder="Last name..."
+              placeholder={t("search.lastName")}
               value={filters.lastName}
               onChange={(e) => updateFilter("lastName", e.target.value)}
               className="max-w-xs"
@@ -99,7 +105,7 @@ export default function Search() {
             className="gap-2"
           >
             <Filter className="h-4 w-4" />
-            Filters
+            {t("search.filters")}
             {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
@@ -108,15 +114,15 @@ export default function Search() {
         {showFilters && (
           <div className="border border-border bg-card p-6 mb-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-serif font-semibold">Advanced Filters</h3>
+              <h3 className="font-serif font-semibold">{t("search.advancedFilters")}</h3>
               <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
-                <X className="h-3 w-3" /> Clear All
+                <X className="h-3 w-3" /> {t("search.clearAll")}
               </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div>
-                <Label className="text-xs mb-1.5 block">Category</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.category")}</Label>
                 <Select
                   value={filters.categoryId?.toString() || "all"}
                   onValueChange={(v) => {
@@ -124,65 +130,87 @@ export default function Search() {
                     updateFilter("serviceId", undefined);
                   }}
                 >
-                  <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("search.allCategories")} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="all">{t("search.allCategories")}</SelectItem>
                     {categories?.map(c => (
-                      <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id.toString()}>
+                        {lang === "ar" && c.nameAr ? c.nameAr : c.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label className="text-xs mb-1.5 block">Service</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.service")}</Label>
                 <Select
                   value={filters.serviceId?.toString() || "all"}
                   onValueChange={(v) => updateFilter("serviceId", v === "all" ? undefined : Number(v))}
                 >
-                  <SelectTrigger><SelectValue placeholder="All Services" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("search.allServices")} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Services</SelectItem>
+                    <SelectItem value="all">{t("search.allServices")}</SelectItem>
                     {filteredServices?.map(s => (
-                      <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                      <SelectItem key={s.id} value={s.id.toString()}>
+                        {lang === "ar" && s.nameAr ? s.nameAr : s.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label className="text-xs mb-1.5 block">Gender</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.country")}</Label>
+                <Input
+                  placeholder={t("search.allCountries")}
+                  value={filters.country}
+                  onChange={(e) => updateFilter("country", e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs mb-1.5 block">{t("search.city")}</Label>
+                <Input
+                  placeholder={t("search.allCities")}
+                  value={filters.city}
+                  onChange={(e) => updateFilter("city", e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs mb-1.5 block">{t("search.gender")}</Label>
                 <Select
                   value={filters.sex || "all"}
                   onValueChange={(v) => updateFilter("sex", v === "all" ? undefined : v)}
                 >
-                  <SelectTrigger><SelectValue placeholder="Any" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("search.any")} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Any</SelectItem>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="all">{t("search.any")}</SelectItem>
+                    <SelectItem value="male">{t("search.male")}</SelectItem>
+                    <SelectItem value="female">{t("search.female")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label className="text-xs mb-1.5 block">Nationality</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.nationality")}</Label>
                 <Input
-                  placeholder="e.g. French"
+                  placeholder={t("search.any")}
                   value={filters.nationality}
                   onChange={(e) => updateFilter("nationality", e.target.value)}
                 />
               </div>
 
               <div>
-                <Label className="text-xs mb-1.5 block">Min Stars</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.minStars")}</Label>
                 <Select
                   value={filters.minStars?.toString() || "any"}
                   onValueChange={(v) => updateFilter("minStars", v === "any" ? undefined : Number(v))}
                 >
-                  <SelectTrigger><SelectValue placeholder="Any" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("search.any")} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="any">Any</SelectItem>
+                    <SelectItem value="any">{t("search.any")}</SelectItem>
                     <SelectItem value="1">1+</SelectItem>
                     <SelectItem value="2">2+</SelectItem>
                     <SelectItem value="3">3+</SelectItem>
@@ -193,7 +221,7 @@ export default function Search() {
               </div>
 
               <div>
-                <Label className="text-xs mb-1.5 block">Min Cost/hr</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.minCost")}</Label>
                 <Input
                   type="number"
                   placeholder="0"
@@ -203,17 +231,17 @@ export default function Search() {
               </div>
 
               <div>
-                <Label className="text-xs mb-1.5 block">Max Cost/hr</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.maxCost")}</Label>
                 <Input
                   type="number"
-                  placeholder="Any"
+                  placeholder={t("search.any")}
                   value={filters.maxCost || ""}
                   onChange={(e) => updateFilter("maxCost", e.target.value ? Number(e.target.value) : undefined)}
                 />
               </div>
 
               <div>
-                <Label className="text-xs mb-1.5 block">Min Experience (yrs)</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.minExperience")}</Label>
                 <Input
                   type="number"
                   placeholder="0"
@@ -222,37 +250,44 @@ export default function Search() {
                 />
               </div>
 
-              <div className="flex items-end gap-2">
+              <div className="flex items-end gap-4">
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={filters.hasTeam || false}
                     onCheckedChange={(v) => updateFilter("hasTeam", v || undefined)}
                   />
-                  <Label className="text-xs">Has Team</Label>
+                  <Label className="text-xs">{t("search.hasTeam")}</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={filters.hasOffice || false}
+                    onCheckedChange={(v) => updateFilter("hasOffice", v || undefined)}
+                  />
+                  <Label className="text-xs">{t("search.hasOffice")}</Label>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-4 pt-2 border-t border-border">
               <div>
-                <Label className="text-xs mb-1.5 block">Sort By</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.sortBy")}</Label>
                 <Select value={filters.sortBy} onValueChange={(v) => updateFilter("sortBy", v)}>
                   <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="stars">Rating</SelectItem>
-                    <SelectItem value="cost">Cost</SelectItem>
-                    <SelectItem value="experience">Experience</SelectItem>
-                    <SelectItem value="age">Age</SelectItem>
+                    <SelectItem value="stars">{t("search.rating")}</SelectItem>
+                    <SelectItem value="cost">{t("search.cost")}</SelectItem>
+                    <SelectItem value="experience">{t("search.experience")}</SelectItem>
+                    <SelectItem value="age">{t("search.age")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-xs mb-1.5 block">Order</Label>
+                <Label className="text-xs mb-1.5 block">{t("search.order")}</Label>
                 <Select value={filters.sortOrder} onValueChange={(v) => updateFilter("sortOrder", v)}>
                   <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="desc">Descending</SelectItem>
-                    <SelectItem value="asc">Ascending</SelectItem>
+                    <SelectItem value="desc">{t("search.descending")}</SelectItem>
+                    <SelectItem value="asc">{t("search.ascending")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -263,7 +298,11 @@ export default function Search() {
         {/* Results */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground">
-            {data ? `${data.total} professional${data.total !== 1 ? "s" : ""} found` : "Searching..."}
+            {data
+              ? t("search.professionalsFound")
+                  .replace("{count}", String(data.total))
+                  .replace("{s}", data.total !== 1 ? "s" : "")
+              : t("search.searching")}
           </p>
         </div>
 
@@ -289,6 +328,9 @@ export default function Search() {
                   isPremium={pro.isPremium}
                   isStarred={pro.isStarred}
                   hasTeam={pro.hasTeam}
+                  country={pro.country}
+                  city={pro.city}
+                  hasOffice={pro.hasOffice}
                 />
               ))}
             </div>
@@ -302,10 +344,12 @@ export default function Search() {
                   disabled={filters.page <= 1}
                   onClick={() => setFilters(f => ({ ...f, page: f.page - 1 }))}
                 >
-                  Previous
+                  {t("search.previous")}
                 </Button>
                 <span className="flex items-center text-sm text-muted-foreground px-3">
-                  Page {filters.page} of {Math.ceil(data.total / 20)}
+                  {t("search.page")
+                    .replace("{current}", String(filters.page))
+                    .replace("{total}", String(Math.ceil(data.total / 20)))}
                 </span>
                 <Button
                   variant="outline"
@@ -313,7 +357,7 @@ export default function Search() {
                   disabled={filters.page >= Math.ceil(data.total / 20)}
                   onClick={() => setFilters(f => ({ ...f, page: f.page + 1 }))}
                 >
-                  Next
+                  {t("search.next")}
                 </Button>
               </div>
             )}
@@ -321,8 +365,8 @@ export default function Search() {
         ) : (
           <div className="text-center py-16 border border-dashed border-border">
             <SearchIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">No professionals match your criteria</p>
-            <Button variant="ghost" className="mt-4" onClick={clearFilters}>Clear Filters</Button>
+            <p className="text-muted-foreground">{t("search.noResults")}</p>
+            <Button variant="ghost" className="mt-4" onClick={clearFilters}>{t("search.clearFilters")}</Button>
           </div>
         )}
       </div>

@@ -7,12 +7,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { MessageSquare, Send, Loader2, ArrowLeft, Image, MapPin } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function Chats() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
 
   if (loading) return <div className="min-h-screen flex flex-col bg-background"><Navbar /><div className="flex-1 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>;
@@ -23,17 +25,15 @@ export default function Chats() {
       <Navbar />
       <div className="container py-8 flex-1">
         <h1 className="font-serif text-3xl font-bold mb-6 flex items-center gap-2">
-          <MessageSquare className="h-7 w-7 text-primary" /> Messages
+          <MessageSquare className="h-7 w-7 text-primary" /> {t("chats.title")}
         </h1>
 
         <div className="border border-border bg-card" style={{ minHeight: "500px" }}>
           <div className="flex h-full" style={{ minHeight: "500px" }}>
-            {/* Room List */}
-            <div className={`w-full md:w-80 border-r border-border ${selectedRoom ? "hidden md:block" : ""}`}>
+            <div className={`w-full md:w-80 border-e border-border ${selectedRoom ? "hidden md:block" : ""}`}>
               <RoomList userId={user.id} selectedRoom={selectedRoom} onSelect={setSelectedRoom} />
             </div>
 
-            {/* Chat Area */}
             <div className={`flex-1 ${!selectedRoom ? "hidden md:flex" : "flex"} flex-col`}>
               {selectedRoom ? (
                 <ChatArea roomId={selectedRoom} userId={user.id} onBack={() => setSelectedRoom(null)} />
@@ -41,7 +41,7 @@ export default function Chats() {
                 <div className="flex-1 flex items-center justify-center text-muted-foreground">
                   <div className="text-center">
                     <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                    <p>Select a conversation to start chatting</p>
+                    <p>{t("chats.selectChat")}</p>
                   </div>
                 </div>
               )}
@@ -55,6 +55,7 @@ export default function Chats() {
 }
 
 function RoomList({ userId, selectedRoom, onSelect }: { userId: number; selectedRoom: number | null; onSelect: (id: number) => void }) {
+  const { t } = useLanguage();
   const { data: rooms, isLoading } = trpc.chat.rooms.useQuery(undefined, { refetchInterval: 5000 });
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
@@ -62,8 +63,8 @@ function RoomList({ userId, selectedRoom, onSelect }: { userId: number; selected
   if (!rooms || rooms.length === 0) {
     return (
       <div className="p-6 text-center text-muted-foreground">
-        <p className="text-sm">No conversations yet</p>
-        <p className="text-xs mt-1">Start a chat from a professional's profile</p>
+        <p className="text-sm">{t("chats.noChats")}</p>
+        <p className="text-xs mt-1">{t("chats.startFromProfile")}</p>
       </div>
     );
   }
@@ -74,7 +75,7 @@ function RoomList({ userId, selectedRoom, onSelect }: { userId: number; selected
         <button
           key={room.id}
           onClick={() => onSelect(room.id)}
-          className={`w-full text-left p-4 border-b border-border hover:bg-accent/50 transition-colors ${selectedRoom === room.id ? "bg-accent" : ""}`}
+          className={`w-full text-start p-4 border-b border-border hover:bg-accent/50 transition-colors ${selectedRoom === room.id ? "bg-accent" : ""}`}
         >
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 shrink-0">
@@ -102,6 +103,7 @@ function RoomList({ userId, selectedRoom, onSelect }: { userId: number; selected
 }
 
 function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; onBack: () => void }) {
+  const { t } = useLanguage();
   const { data: messages, isLoading } = trpc.chat.messages.useQuery({ roomId }, { refetchInterval: 3000 });
   const [text, setText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -125,20 +127,18 @@ function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; 
 
   return (
     <>
-      {/* Header */}
       <div className="border-b border-border p-3 flex items-center gap-2">
         <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <span className="font-medium text-sm">Conversation</span>
+        <span className="font-medium text-sm">{t("chats.conversation")}</span>
       </div>
 
-      {/* Messages */}
       <ScrollArea className="flex-1 p-4" style={{ minHeight: "350px", maxHeight: "400px" }}>
         {isLoading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
         ) : sortedMessages.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">No messages yet. Say hello!</div>
+          <div className="text-center py-8 text-muted-foreground text-sm">{t("chats.noMessages")}</div>
         ) : (
           <div className="space-y-3">
             {sortedMessages.map((msg) => {
@@ -163,12 +163,11 @@ function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; 
         )}
       </ScrollArea>
 
-      {/* Input */}
       <div className="border-t border-border p-3 flex gap-2">
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
+          placeholder={t("chats.typeMessage")}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
           className="flex-1"
         />

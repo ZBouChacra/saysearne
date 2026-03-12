@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +13,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Home, Search, MessageSquare, Bell, User, Settings, Info, Phone,
-  LogOut, Moon, Sun, Menu, X, Shield, Calendar
+  LogOut, Moon, Sun, Menu, X, Shield, Calendar, Languages
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -20,22 +21,23 @@ import { Link, useLocation } from "wouter";
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme, switchable } = useTheme();
+  const { t, lang, setLang, isRTL } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [location] = useLocation();
 
   const publicLinks = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/search", label: "Search", icon: Search },
-    { href: "/about", label: "About Us", icon: Info },
-    { href: "/contact", label: "Contact Us", icon: Phone },
+    { href: "/", label: t("nav.home"), icon: Home },
+    { href: "/search", label: t("nav.search"), icon: Search },
+    { href: "/about", label: t("nav.about"), icon: Info },
+    { href: "/contact", label: t("nav.contact"), icon: Phone },
   ];
 
   const authLinks = [
-    { href: "/profile", label: "Profile", icon: User },
-    { href: "/appointments", label: "Appointments", icon: Calendar },
-    { href: "/chats", label: "Chats", icon: MessageSquare },
-    { href: "/alerts", label: "Alerts", icon: Bell },
-    { href: "/settings", label: "Settings", icon: Settings },
+    { href: "/profile", label: t("nav.profile"), icon: User },
+    { href: "/appointments", label: t("nav.appointments"), icon: Calendar },
+    { href: "/chats", label: t("nav.chats"), icon: MessageSquare },
+    { href: "/alerts", label: t("nav.alerts"), icon: Bell },
+    { href: "/settings", label: t("nav.settings"), icon: Settings },
   ];
 
   return (
@@ -69,6 +71,17 @@ export default function Navbar() {
 
         {/* Right Side */}
         <div className="flex items-center gap-2">
+          {/* Language Switcher */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLang(lang === "en" ? "ar" : "en")}
+            className="h-9 w-9"
+            title={lang === "en" ? "العربية" : "English"}
+          >
+            <span className="text-xs font-bold">{lang === "en" ? "ع" : "EN"}</span>
+          </Button>
+
           {switchable && (
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -89,7 +102,7 @@ export default function Navbar() {
                   </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align={isRTL ? "start" : "end"} className="w-56">
                 {authLinks.map((link) => (
                   <Link key={link.href} href={link.href}>
                     <DropdownMenuItem className="gap-2 cursor-pointer">
@@ -104,7 +117,7 @@ export default function Navbar() {
                     <Link href="/admin">
                       <DropdownMenuItem className="gap-2 cursor-pointer">
                         <Shield className="h-4 w-4" />
-                        Admin Portal
+                        {t("nav.admin")}
                       </DropdownMenuItem>
                     </Link>
                   </>
@@ -112,7 +125,7 @@ export default function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="gap-2 cursor-pointer text-destructive">
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  {t("nav.signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -123,7 +136,7 @@ export default function Navbar() {
                 size="sm"
                 onClick={() => { window.location.href = getLoginUrl(); }}
               >
-                Sign In
+                {t("nav.signIn")}
               </Button>
             </div>
           )}

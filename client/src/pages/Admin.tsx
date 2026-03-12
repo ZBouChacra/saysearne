@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Shield, Users, BarChart3, Megaphone, Mail, Loader2,
   Lock, Unlock, Crown, Star, Trash2, Plus, Calendar, MessageSquare
@@ -21,25 +22,26 @@ import { Link } from "wouter";
 
 export default function Admin() {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
 
   if (loading) return <div className="min-h-screen flex flex-col bg-background"><Navbar /><div className="flex-1 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>;
   if (!user) { window.location.href = getLoginUrl(); return null; }
-  if (user.role !== "admin") return <div className="min-h-screen flex flex-col bg-background"><Navbar /><div className="flex-1 flex items-center justify-center"><p className="text-destructive font-semibold">Access Denied: Admin privileges required</p></div><Footer /></div>;
+  if (user.role !== "admin") return <div className="min-h-screen flex flex-col bg-background"><Navbar /><div className="flex-1 flex items-center justify-center"><p className="text-destructive font-semibold">{t("admin.accessDenied")}</p></div><Footer /></div>;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <div className="container py-8 flex-1">
         <h1 className="font-serif text-3xl font-bold mb-6 flex items-center gap-2">
-          <Shield className="h-7 w-7 text-primary" /> Back Office
+          <Shield className="h-7 w-7 text-primary" /> {t("admin.title")}
         </h1>
 
         <Tabs defaultValue="dashboard">
           <TabsList className="flex-wrap">
-            <TabsTrigger value="dashboard" className="gap-2"><BarChart3 className="h-4 w-4" /> Dashboard</TabsTrigger>
-            <TabsTrigger value="users" className="gap-2"><Users className="h-4 w-4" /> Users</TabsTrigger>
-            <TabsTrigger value="ads" className="gap-2"><Megaphone className="h-4 w-4" /> Advertisements</TabsTrigger>
-            <TabsTrigger value="contacts" className="gap-2"><Mail className="h-4 w-4" /> Contact Messages</TabsTrigger>
+            <TabsTrigger value="dashboard" className="gap-2"><BarChart3 className="h-4 w-4" /> {t("admin.dashboard")}</TabsTrigger>
+            <TabsTrigger value="users" className="gap-2"><Users className="h-4 w-4" /> {t("admin.users")}</TabsTrigger>
+            <TabsTrigger value="ads" className="gap-2"><Megaphone className="h-4 w-4" /> {t("admin.ads")}</TabsTrigger>
+            <TabsTrigger value="contacts" className="gap-2"><Mail className="h-4 w-4" /> {t("admin.contacts")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="mt-4"><AdminDashboard /></TabsContent>
@@ -54,15 +56,16 @@ export default function Admin() {
 }
 
 function AdminDashboard() {
+  const { t } = useLanguage();
   const { data: stats, isLoading } = trpc.admin.stats.useQuery();
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   const cards = [
-    { label: "Total Users", value: stats?.totalUsers || 0, icon: Users, color: "text-blue-500" },
-    { label: "Professionals", value: stats?.totalProfessionals || 0, icon: Crown, color: "text-purple-500" },
-    { label: "Total Bookings", value: stats?.totalBookings || 0, icon: Calendar, color: "text-green-500" },
-    { label: "Total Reviews", value: stats?.totalReviews || 0, icon: Star, color: "text-yellow-500" },
+    { label: t("admin.totalUsers"), value: stats?.totalUsers || 0, icon: Users, color: "text-blue-500" },
+    { label: t("admin.professionals"), value: stats?.totalProfessionals || 0, icon: Crown, color: "text-purple-500" },
+    { label: t("admin.totalBookings"), value: stats?.totalBookings || 0, icon: Calendar, color: "text-green-500" },
+    { label: t("admin.totalReviews"), value: stats?.totalReviews || 0, icon: Star, color: "text-yellow-500" },
   ];
 
   return (
@@ -81,20 +84,21 @@ function AdminDashboard() {
 }
 
 function UserManagement() {
+  const { t } = useLanguage();
   const [page, setPage] = useState(1);
   const { data, isLoading } = trpc.admin.users.useQuery({ page, limit: 20 });
   const utils = trpc.useUtils();
 
   const toggleLock = trpc.admin.toggleLock.useMutation({
-    onSuccess: () => { toast.success("Updated"); utils.admin.users.invalidate(); },
+    onSuccess: () => { toast.success(t("admin.updated")); utils.admin.users.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
   const togglePremium = trpc.admin.togglePremium.useMutation({
-    onSuccess: () => { toast.success("Updated"); utils.admin.users.invalidate(); },
+    onSuccess: () => { toast.success(t("admin.updated")); utils.admin.users.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
   const toggleStarred = trpc.admin.toggleStarred.useMutation({
-    onSuccess: () => { toast.success("Updated"); utils.admin.users.invalidate(); },
+    onSuccess: () => { toast.success(t("admin.updated")); utils.admin.users.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
 
@@ -102,16 +106,16 @@ function UserManagement() {
 
   return (
     <div>
-      <p className="text-sm text-muted-foreground mb-4">{data?.total || 0} total users</p>
+      <p className="text-sm text-muted-foreground mb-4">{data?.total || 0} {t("admin.totalUsers").toLowerCase()}</p>
       <div className="border border-border overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
-              <th className="text-left p-3 font-medium">User</th>
-              <th className="text-left p-3 font-medium">Email</th>
-              <th className="text-left p-3 font-medium">Role</th>
-              <th className="text-left p-3 font-medium">Status</th>
-              <th className="text-right p-3 font-medium">Actions</th>
+              <th className="text-start p-3 font-medium">{t("admin.user")}</th>
+              <th className="text-start p-3 font-medium">{t("admin.emailCol")}</th>
+              <th className="text-start p-3 font-medium">{t("admin.roleCol")}</th>
+              <th className="text-start p-3 font-medium">{t("admin.statusCol")}</th>
+              <th className="text-end p-3 font-medium">{t("admin.actionsCol")}</th>
             </tr>
           </thead>
           <tbody>
@@ -121,8 +125,8 @@ function UserManagement() {
                   <div>
                     <span className="font-medium">{u.firstName ? `${u.firstName} ${u.lastName}` : u.name || "—"}</span>
                     <div className="flex gap-1 mt-1">
-                      {u.isPremium && <Badge variant="default" className="text-xs">Premium</Badge>}
-                      {u.isStarred && <Badge variant="outline" className="text-xs">Starred</Badge>}
+                      {u.isPremium && <Badge variant="default" className="text-xs">{t("common.premium")}</Badge>}
+                      {u.isStarred && <Badge variant="outline" className="text-xs">{t("common.starred")}</Badge>}
                     </div>
                   </div>
                 </td>
@@ -130,32 +134,18 @@ function UserManagement() {
                 <td className="p-3 capitalize">{u.role}</td>
                 <td className="p-3">
                   <Badge variant={u.isLocked ? "destructive" : "outline"}>
-                    {u.isLocked ? "Locked" : "Active"}
+                    {u.isLocked ? t("admin.locked") : t("admin.active")}
                   </Badge>
                 </td>
                 <td className="p-3">
                   <div className="flex gap-1 justify-end">
-                    <Button
-                      variant="ghost" size="sm"
-                      onClick={() => toggleLock.mutate({ userId: u.id, isLocked: !u.isLocked })}
-                      title={u.isLocked ? "Unlock" : "Lock"}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => toggleLock.mutate({ userId: u.id, isLocked: !u.isLocked })}>
                       {u.isLocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     </Button>
-                    <Button
-                      variant="ghost" size="sm"
-                      onClick={() => togglePremium.mutate({ userId: u.id, isPremium: !u.isPremium })}
-                      title={u.isPremium ? "Remove Premium" : "Make Premium"}
-                      className={u.isPremium ? "text-primary" : ""}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => togglePremium.mutate({ userId: u.id, isPremium: !u.isPremium })} className={u.isPremium ? "text-primary" : ""}>
                       <Crown className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost" size="sm"
-                      onClick={() => toggleStarred.mutate({ userId: u.id, isStarred: !u.isStarred })}
-                      title={u.isStarred ? "Remove Star" : "Add Star"}
-                      className={u.isStarred ? "text-primary" : ""}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => toggleStarred.mutate({ userId: u.id, isStarred: !u.isStarred })} className={u.isStarred ? "text-primary" : ""}>
                       <Star className="h-4 w-4" />
                     </Button>
                   </div>
@@ -168,9 +158,9 @@ function UserManagement() {
 
       {data && data.total > 20 && (
         <div className="flex justify-center gap-2 mt-4">
-          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
-          <span className="flex items-center text-sm text-muted-foreground px-3">Page {page}</span>
-          <Button variant="outline" size="sm" disabled={page >= Math.ceil(data.total / 20)} onClick={() => setPage(p => p + 1)}>Next</Button>
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>{t("search.previous")}</Button>
+          <span className="flex items-center text-sm text-muted-foreground px-3">{t("admin.pageLabel")} {page}</span>
+          <Button variant="outline" size="sm" disabled={page >= Math.ceil(data.total / 20)} onClick={() => setPage(p => p + 1)}>{t("search.next")}</Button>
         </div>
       )}
     </div>
@@ -178,23 +168,24 @@ function UserManagement() {
 }
 
 function AdManagement() {
+  const { t } = useLanguage();
   const { data: ads, isLoading } = trpc.admin.ads.list.useQuery();
   const utils = trpc.useUtils();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ title: "", imageUrl: "", linkUrl: "", position: "home_banner" as const });
 
   const createMutation = trpc.admin.ads.create.useMutation({
-    onSuccess: () => { toast.success("Ad created!"); utils.admin.ads.list.invalidate(); setDialogOpen(false); setForm({ title: "", imageUrl: "", linkUrl: "", position: "home_banner" }); },
+    onSuccess: () => { toast.success(t("admin.adCreated")); utils.admin.ads.list.invalidate(); setDialogOpen(false); setForm({ title: "", imageUrl: "", linkUrl: "", position: "home_banner" }); },
     onError: (err) => toast.error(err.message),
   });
 
   const deleteMutation = trpc.admin.ads.delete.useMutation({
-    onSuccess: () => { toast.success("Ad deleted"); utils.admin.ads.list.invalidate(); },
+    onSuccess: () => { toast.success(t("admin.adDeleted")); utils.admin.ads.list.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
 
   const toggleMutation = trpc.admin.ads.update.useMutation({
-    onSuccess: () => { toast.success("Updated"); utils.admin.ads.list.invalidate(); },
+    onSuccess: () => { toast.success(t("admin.updated")); utils.admin.ads.list.invalidate(); },
     onError: (err) => toast.error(err.message),
   });
 
@@ -203,39 +194,39 @@ function AdManagement() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-muted-foreground">{ads?.length || 0} advertisement(s)</p>
+        <p className="text-sm text-muted-foreground">{ads?.length || 0} {t("admin.adsCount")}</p>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2"><Plus className="h-4 w-4" /> New Ad</Button>
+            <Button className="gap-2"><Plus className="h-4 w-4" /> {t("admin.newAd")}</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle className="font-serif">Create Advertisement</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle className="font-serif">{t("admin.createAd")}</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Title</Label>
+                <Label>{t("admin.adTitle")}</Label>
                 <Input value={form.title} onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))} className="mt-1.5" />
               </div>
               <div>
-                <Label>Image URL</Label>
+                <Label>{t("admin.adImageUrl")}</Label>
                 <Input value={form.imageUrl} onChange={(e) => setForm(f => ({ ...f, imageUrl: e.target.value }))} className="mt-1.5" placeholder="https://..." />
               </div>
               <div>
-                <Label>Link URL (optional)</Label>
+                <Label>{t("admin.adLinkUrl")}</Label>
                 <Input value={form.linkUrl} onChange={(e) => setForm(f => ({ ...f, linkUrl: e.target.value }))} className="mt-1.5" />
               </div>
               <div>
-                <Label>Position</Label>
+                <Label>{t("admin.adPosition")}</Label>
                 <Select value={form.position} onValueChange={(v: any) => setForm(f => ({ ...f, position: v }))}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="home_banner">Home Banner</SelectItem>
-                    <SelectItem value="search_banner">Search Banner</SelectItem>
-                    <SelectItem value="sidebar">Sidebar</SelectItem>
+                    <SelectItem value="home_banner">{t("admin.homeBanner")}</SelectItem>
+                    <SelectItem value="search_banner">{t("admin.searchBanner")}</SelectItem>
+                    <SelectItem value="sidebar">{t("admin.sidebar")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <Button onClick={() => createMutation.mutate(form)} className="w-full" disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Creating..." : "Create Ad"}
+                {createMutation.isPending ? t("admin.creating") : t("admin.createAd")}
               </Button>
             </div>
           </DialogContent>
@@ -250,7 +241,7 @@ function AdManagement() {
                 {ad.imageUrl && <img src={ad.imageUrl} alt={ad.title} className="h-12 w-20 object-cover border border-border" />}
                 <div>
                   <h3 className="font-semibold">{ad.title}</h3>
-                  <p className="text-xs text-muted-foreground">{ad.position.replace("_", " ")} &middot; {ad.isActive ? "Active" : "Inactive"}</p>
+                  <p className="text-xs text-muted-foreground">{ad.position.replace("_", " ")} &middot; {ad.isActive ? t("admin.active") : t("admin.inactive")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -265,7 +256,7 @@ function AdManagement() {
       ) : (
         <div className="text-center py-12 border border-dashed border-border">
           <Megaphone className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <p className="text-muted-foreground">No advertisements yet</p>
+          <p className="text-muted-foreground">{t("admin.noAds")}</p>
         </div>
       )}
     </div>
@@ -273,6 +264,7 @@ function AdManagement() {
 }
 
 function ContactMessages() {
+  const { t } = useLanguage();
   const { data: messages, isLoading } = trpc.admin.contacts.useQuery();
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
@@ -281,7 +273,7 @@ function ContactMessages() {
     return (
       <div className="text-center py-12 border border-dashed border-border">
         <Mail className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-        <p className="text-muted-foreground">No contact messages yet</p>
+        <p className="text-muted-foreground">{t("admin.noContacts")}</p>
       </div>
     );
   }

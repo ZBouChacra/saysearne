@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `categories` ADD `nameAr` varchar(100);\nALTER TABLE `categories` ADD `descriptionAr` text;\nALTER TABLE `professions` ADD `country` varchar(100);\nALTER TABLE `professions` ADD `city` varchar(100);\nALTER TABLE `professions` ADD `hasOffice` boolean DEFAULT false;\nALTER TABLE `professions` ADD `officeAddress` text;\nALTER TABLE `professions` ADD `officeCity` varchar(100);\nALTER TABLE `professions` ADD `officeCountry` varchar(100);\nALTER TABLE `services` ADD `nameAr` varchar(100);\nALTER TABLE `services` ADD `descriptionAr` text;\nALTER TABLE `users` ADD `country` varchar(100);\nALTER TABLE `users` ADD `preferredLanguage` enum('en','ar') DEFAULT 'en';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3MzNopcSwJXugWj.root --database fSXYjnqatsqbzh69FLd2k9 --execute ALTER TABLE `categories` ADD `nameAr` varchar(100);\nALTER TABLE `categories` ADD `descriptionAr` text;\nALTER TABLE `professions` ADD `country` varchar(100);\nALTER TABLE `professions` ADD `city` varchar(100);\nALTER TABLE `professions` ADD `hasOffice` boolean DEFAULT false;\nALTER TABLE `professions` ADD `officeAddress` text;\nALTER TABLE `professions` ADD `officeCity` varchar(100);\nALTER TABLE `professions` ADD `officeCountry` varchar(100);\nALTER TABLE `services` ADD `nameAr` varchar(100);\nALTER TABLE `services` ADD `descriptionAr` text;\nALTER TABLE `users` ADD `country` varchar(100);\nALTER TABLE `users` ADD `preferredLanguage` enum('en','ar') DEFAULT 'en';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 7359
+}

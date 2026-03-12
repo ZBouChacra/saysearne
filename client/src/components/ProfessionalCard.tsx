@@ -1,7 +1,8 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Star, Crown, Award, MapPin, Users, DollarSign } from "lucide-react";
+import { Star, Crown, Award, MapPin, Users, DollarSign, Building2 } from "lucide-react";
 import { Link } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfessionalCardProps {
   userId: number;
@@ -16,6 +17,9 @@ interface ProfessionalCardProps {
   isPremium?: boolean | null;
   isStarred?: boolean | null;
   hasTeam?: boolean | null;
+  hasOffice?: boolean | null;
+  country?: string | null;
+  city?: string | null;
   categoryName?: string;
   serviceName?: string;
 }
@@ -23,25 +27,28 @@ interface ProfessionalCardProps {
 export default function ProfessionalCard({
   userId, firstName, lastName, userName, profilePhoto,
   avgRating, totalReviews, costPerHour, yearsOfExperience,
-  isPremium, isStarred, hasTeam, categoryName, serviceName,
+  isPremium, isStarred, hasTeam, hasOffice, country, city,
+  categoryName, serviceName,
 }: ProfessionalCardProps) {
+  const { t } = useLanguage();
   const displayName = firstName && lastName ? `${firstName} ${lastName}` : userName || "Professional";
   const initials = firstName ? firstName.charAt(0) : displayName.charAt(0);
   const rating = parseFloat(avgRating || "0");
+  const locationStr = [city, country].filter(Boolean).join(", ");
 
   return (
     <Link href={`/professional/${userId}`}>
       <div className="group relative border border-border bg-card hover:border-primary/50 p-5 transition-all cursor-pointer">
         {(isPremium || isStarred) && (
-          <div className="absolute top-3 right-3 flex gap-1">
+          <div className="absolute top-3 end-3 flex gap-1">
             {isPremium && (
               <Badge variant="default" className="gap-1 bg-primary text-primary-foreground text-xs">
-                <Crown className="h-3 w-3" /> Premium
+                <Crown className="h-3 w-3" /> {t("common.premium")}
               </Badge>
             )}
             {isStarred && (
               <Badge variant="outline" className="gap-1 border-primary text-primary text-xs">
-                <Award className="h-3 w-3" /> Starred
+                <Award className="h-3 w-3" /> {t("common.starred")}
               </Badge>
             )}
           </div>
@@ -65,6 +72,11 @@ export default function ProfessionalCard({
             {serviceName && (
               <p className="text-sm text-muted-foreground">{serviceName}</p>
             )}
+            {locationStr && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                <MapPin className="h-3 w-3" /> {locationStr}
+              </p>
+            )}
 
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               {rating > 0 && (
@@ -85,7 +97,12 @@ export default function ProfessionalCard({
               )}
               {hasTeam && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Users className="h-3 w-3" /> Team
+                  <Users className="h-3 w-3" /> {t("common.team")}
+                </div>
+              )}
+              {hasOffice && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Building2 className="h-3 w-3" /> {t("profProfile.office")}
                 </div>
               )}
             </div>

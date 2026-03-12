@@ -84,7 +84,7 @@
   --sidebar-ring: oklch(0.78 0.12 85);
 }
 
-/* ===== DARK MODE (Night - Default) ===== */
+/* ===== DARK MODE (Night) ===== */
 .dark {
   --background: oklch(0.15 0.04 300);
   --foreground: oklch(0.92 0.01 85);
