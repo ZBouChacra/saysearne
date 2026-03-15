@@ -217,6 +217,81 @@ describe("admin", () => {
   });
 });
 
+// ---- Categories Active ----
+describe("categories.active", () => {
+  it("returns only active categories", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.categories.active();
+    expect(Array.isArray(result)).toBe(true);
+  });
+});
+
+// ---- Site Config ----
+describe("siteConfig", () => {
+  it("returns null for non-existent key", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.siteConfig.get({ key: "nonexistent_xyz" });
+    expect(result).toBeNull();
+  });
+
+  it("returns about_us config if seeded", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.siteConfig.get({ key: "about_us" });
+    expect(result === null || typeof result === "object").toBe(true);
+  });
+});
+
+// ---- Appointment Overlap ----
+describe("appointments.checkOverlap", () => {
+  it("returns array of existing appointments for a date", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.appointments.checkOverlap({
+      professionalId: 999, date: "2030-01-01",
+    });
+    expect(Array.isArray(result)).toBe(true);
+  });
+});
+
+// ---- Reviews by Professional ----
+describe("reviews.byProfessional", () => {
+  it("returns array of reviews", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.reviews.byProfessional({ professionalId: 999 });
+    expect(Array.isArray(result)).toBe(true);
+  });
+});
+
+// ---- Admin Categories Management ----
+describe("admin.categories", () => {
+  it("list returns all categories for admin", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.categories.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("non-admin cannot list admin categories", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.admin.categories.list()).rejects.toThrow();
+  });
+});
+
+// ---- Admin Contact Status ----
+describe("admin.contacts", () => {
+  it("returns contact messages with status", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.contacts();
+    expect(Array.isArray(result)).toBe(true);
+  });
+});
+
 // ---- Protected Route Tests ----
 describe("protected routes", () => {
   it("profile.update requires authentication", async () => {

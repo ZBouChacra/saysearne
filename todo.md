@@ -44,12 +44,12 @@
 - [x] Approval workflow (pending → approved/cancelled)
 - [x] Calendar view with status colors
 - [ ] Automatic expiration of pending appointments
-- [ ] No overlapping appointments validation
+- [x] No overlapping appointments validation
 
 ## Communication
 - [x] Real-time chat interface
-- [ ] Image and video sharing in chat - UI ready, upload integration pending
-- [ ] Location sharing - UI ready, map integration pending
+- [x] Image and video sharing in chat
+- [x] Location sharing
 - [x] Unread message indicators
 
 ## Reviews & Ratings
@@ -101,3 +101,26 @@
 - [x] Country/city filters in search
 - [x] Update professional profile page with country/city/office info
 - [x] Update search filters for country and city
+
+## Bug Fixes & Enhancements (Round 2)
+- [x] 1. Fix locked users not working in admin
+- [x] 2. Admin: view user details and their full configuration
+- [x] 3. Admin: view chats between users
+- [x] 4. Contact us messages should also be sent by email to admin
+- [x] 5. Appointments should not overlap; show pending slots to new customers
+- [x] 6. Booking notification: mobile and web notification to professional
+- [x] 7. Chat: ability to share images, small videos, and locations
+- [x] 8. Fix reviews and stars for customers (missing UI)
+- [x] 9. Book appointment at service level (not professional level); chat stays at customer level
+- [x] 10. Admin: charge professionals a fee for accounts (configurable per professional)
+- [x] 11. Gender: only Male/Female; DOB: dd/MM/yyyy; Nationality and Country as dropdowns
+- [x] 12. Show My Services and Availability only when profile type is Professional (default: Customer)
+- [x] 13. Availability should be related/configured per service
+- [x] 14. Admin: configure and update categories/services; block a category or service
+- [x] 15. Service work location country/city as dropdowns; Geographic Areas via Google Maps
+- [x] 16. Admin: configure the About Us page content
+- [x] 17. Starred and premium options only for professionals, not customers
+- [x] 18. Admin: manage users, set admin role, create users
+- [x] 19. Fix: categories on home page not translated to Arabic
+- [x] 20. Advertisements: auto-flip carousel with 1.5s interval when page width < ad width
+- [x] 21. Contact messages: status (Pending/In Progress/Closed), filter, admin reply, auto-email on status change

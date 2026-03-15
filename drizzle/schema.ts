@@ -7,11 +7,12 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  profileType: mysqlEnum("profileType", ["customer", "professional"]).default("customer").notNull(),
   firstName: varchar("firstName", { length: 50 }),
   lastName: varchar("lastName", { length: 50 }),
   phone: varchar("phone", { length: 50 }),
   sex: mysqlEnum("sex", ["male", "female"]),
-  dateOfBirth: timestamp("dateOfBirth"),
+  dateOfBirth: varchar("dateOfBirth", { length: 10 }), // dd/MM/yyyy format
   nationality: varchar("nationality", { length: 100 }),
   country: varchar("country", { length: 100 }),
   profilePhoto: text("profilePhoto"),
@@ -21,6 +22,8 @@ export const users = mysqlTable("users", {
   isLocked: boolean("isLocked").default(false).notNull(),
   isPremium: boolean("isPremium").default(false).notNull(),
   isStarred: boolean("isStarred").default(false).notNull(),
+  professionalFee: decimal("professionalFee", { precision: 10, scale: 2 }),
+  feeEnabled: boolean("feeEnabled").default(false).notNull(),
   failedLoginAttempts: int("failedLoginAttempts").default(0).notNull(),
   lockedUntil: timestamp("lockedUntil"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -35,6 +38,7 @@ export const categories = mysqlTable("categories", {
   description: text("description"),
   descriptionAr: text("descriptionAr"),
   icon: varchar("icon", { length: 50 }),
+  isBlocked: boolean("isBlocked").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -45,6 +49,7 @@ export const services = mysqlTable("services", {
   nameAr: varchar("nameAr", { length: 100 }),
   description: text("description"),
   descriptionAr: text("descriptionAr"),
+  isBlocked: boolean("isBlocked").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -84,7 +89,10 @@ export const appointments = mysqlTable("appointments", {
   clientId: int("clientId").notNull(),
   professionalId: int("professionalId").notNull(),
   professionId: int("professionId"),
+  serviceId: int("serviceId"),
   appointmentDate: timestamp("appointmentDate").notNull(),
+  endDate: timestamp("endDate"),
+  duration: int("duration").default(60),
   description: text("description"),
   status: mysqlEnum("status", ["pending", "approved", "cancelled", "completed"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -94,6 +102,7 @@ export const appointments = mysqlTable("appointments", {
 export const availability = mysqlTable("availability", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
+  professionId: int("professionId"),
   dayOfWeek: int("dayOfWeek").notNull(),
   startTime: varchar("startTime", { length: 5 }).notNull(),
   endTime: varchar("endTime", { length: 5 }).notNull(),
@@ -114,6 +123,8 @@ export const chatMessages = mysqlTable("chat_messages", {
   content: text("content"),
   messageType: mysqlEnum("messageType", ["text", "image", "video", "location"]).default("text").notNull(),
   mediaUrl: text("mediaUrl"),
+  latitude: decimal("latitude", { precision: 10, scale: 7 }),
+  longitude: decimal("longitude", { precision: 10, scale: 7 }),
   isRead: boolean("isRead").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -157,8 +168,18 @@ export const contactMessages = mysqlTable("contact_messages", {
   email: varchar("email", { length: 320 }).notNull(),
   subject: varchar("subject", { length: 200 }).notNull(),
   description: text("description").notNull(),
+  status: mysqlEnum("status", ["pending", "in_progress", "closed"]).default("pending").notNull(),
+  adminReply: text("adminReply"),
+  repliedAt: timestamp("repliedAt"),
   isRead: boolean("isRead").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const siteConfig = mysqlTable("site_config", {
+  id: int("id").autoincrement().primaryKey(),
+  configKey: varchar("configKey", { length: 100 }).notNull().unique(),
+  configValue: text("configValue"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -172,3 +193,5 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
 export type Alert = typeof alerts.$inferSelect;
 export type Advertisement = typeof advertisements.$inferSelect;
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type SiteConfig = typeof siteConfig.$inferSelect;

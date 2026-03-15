@@ -1,10 +1,28 @@
+import { trpc } from "@/lib/trpc";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Shield, Star, Users, Globe, Zap, Heart } from "lucide-react";
+import { Shield, Star, Globe, Heart, Loader2 } from "lucide-react";
 
 export default function About() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const { data: config, isLoading } = trpc.siteConfig.get.useQuery({ key: "about_us" });
+
+  // The siteConfig.get already parses JSON, so config is the parsed object directly
+  const aboutContent = config || null;
+
+  const title = aboutContent
+    ? (lang === "ar" && aboutContent.titleAr ? aboutContent.titleAr : aboutContent.title || t("about.title"))
+    : t("about.title");
+  const subtitle = aboutContent
+    ? (lang === "ar" && aboutContent.subtitleAr ? aboutContent.subtitleAr : aboutContent.subtitle || t("about.subtitle"))
+    : t("about.subtitle");
+  const mission = aboutContent
+    ? (lang === "ar" && aboutContent.missionAr ? aboutContent.missionAr : aboutContent.mission || t("about.missionP1"))
+    : t("about.missionP1");
+  const vision = aboutContent
+    ? (lang === "ar" && aboutContent.visionAr ? aboutContent.visionAr : aboutContent.vision || t("about.missionP2"))
+    : t("about.missionP2");
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -12,10 +30,14 @@ export default function About() {
 
       <section className="border-b border-border bg-gradient-to-br from-primary/5 via-background to-accent/5">
         <div className="container py-20">
-          <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6">{t("about.title")}</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-            {t("about.subtitle")}
-          </p>
+          {isLoading ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+          ) : (
+            <>
+              <h1 className="font-serif text-4xl md:text-5xl font-bold mb-6">{title}</h1>
+              <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">{subtitle}</p>
+            </>
+          )}
         </div>
       </section>
 
@@ -23,12 +45,8 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
             <h2 className="font-serif text-2xl font-bold mb-4">{t("about.mission")}</h2>
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              {t("about.missionP1")}
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              {t("about.missionP2")}
-            </p>
+            <p className="text-muted-foreground leading-relaxed mb-4">{mission}</p>
+            <p className="text-muted-foreground leading-relaxed">{vision}</p>
           </div>
           <div>
             <h2 className="font-serif text-2xl font-bold mb-4">{t("about.values")}</h2>

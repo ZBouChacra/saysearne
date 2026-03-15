@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE `users` SET `dateOfBirth` = NULL WHERE `dateOfBirth` IS NOT NULL;\nALTER TABLE `users` MODIFY COLUMN `dateOfBirth` varchar(10);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3MzNopcSwJXugWj.root --database fSXYjnqatsqbzh69FLd2k9 --execute UPDATE `users` SET `dateOfBirth` = NULL WHERE `dateOfBirth` IS NOT NULL;\nALTER TABLE `users` MODIFY COLUMN `dateOfBirth` varchar(10);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1980
+}

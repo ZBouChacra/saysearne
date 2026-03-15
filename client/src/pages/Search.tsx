@@ -12,6 +12,26 @@ import { Search as SearchIcon, Filter, Loader2, X, ChevronDown, ChevronUp } from
 import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "wouter";
 
+const COUNTRIES = ["Afghanistan","Albania","Algeria","Argentina","Australia","Austria","Bahrain","Bangladesh","Belgium","Brazil","Canada","Chile","China","Colombia","Czech Republic","Denmark","Egypt","Ethiopia","Finland","France","Germany","Ghana","Greece","Hungary","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Japan","Jordan","Kenya","Kuwait","Lebanon","Libya","Malaysia","Mexico","Morocco","Netherlands","New Zealand","Nigeria","Norway","Oman","Pakistan","Palestine","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Saudi Arabia","Singapore","South Africa","South Korea","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Thailand","Tunisia","Turkey","UAE","UK","Ukraine","USA","Vietnam","Yemen"];
+const NATIONALITIES = ["Afghan","Albanian","Algerian","American","Argentinian","Australian","Austrian","Bahraini","Bangladeshi","Belgian","Brazilian","British","Canadian","Chilean","Chinese","Colombian","Czech","Danish","Dutch","Egyptian","Ethiopian","Filipino","Finnish","French","German","Ghanaian","Greek","Hungarian","Indian","Indonesian","Iranian","Iraqi","Irish","Israeli","Italian","Japanese","Jordanian","Kenyan","Kuwaiti","Lebanese","Libyan","Malaysian","Mexican","Moroccan","New Zealander","Nigerian","Norwegian","Omani","Pakistani","Palestinian","Peruvian","Polish","Portuguese","Qatari","Romanian","Russian","Saudi","Singaporean","South African","South Korean","Spanish","Sri Lankan","Sudanese","Swedish","Swiss","Syrian","Taiwanese","Thai","Tunisian","Turkish","Emirati","Ukrainian","Vietnamese","Yemeni"];
+const CITIES_BY_COUNTRY: Record<string, string[]> = {
+  "UAE": ["Abu Dhabi","Dubai","Sharjah","Ajman","Ras Al Khaimah","Fujairah"],
+  "Saudi Arabia": ["Riyadh","Jeddah","Mecca","Medina","Dammam","Khobar"],
+  "Lebanon": ["Beirut","Tripoli","Sidon","Byblos","Jounieh"],
+  "Egypt": ["Cairo","Alexandria","Giza","Luxor","Hurghada"],
+  "Jordan": ["Amman","Zarqa","Irbid","Aqaba"],
+  "Qatar": ["Doha","Al Wakrah","Al Khor","Lusail"],
+  "Kuwait": ["Kuwait City","Hawalli","Salmiya","Jahra"],
+  "Bahrain": ["Manama","Muharraq","Riffa"],
+  "Oman": ["Muscat","Salalah","Sohar"],
+  "Iraq": ["Baghdad","Erbil","Basra","Mosul"],
+  "USA": ["New York","Los Angeles","Chicago","Houston","Miami","San Francisco"],
+  "UK": ["London","Manchester","Birmingham","Edinburgh"],
+  "France": ["Paris","Marseille","Lyon","Nice"],
+  "Germany": ["Berlin","Munich","Hamburg","Frankfurt"],
+  "Canada": ["Toronto","Montreal","Vancouver","Calgary"],
+};
+
 export default function Search() {
   const { t, lang } = useLanguage();
   const searchParams = new URLSearchParams(useSearch());
@@ -162,20 +182,28 @@ export default function Search() {
 
               <div>
                 <Label className="text-xs mb-1.5 block">{t("search.country")}</Label>
-                <Input
-                  placeholder={t("search.allCountries")}
-                  value={filters.country}
-                  onChange={(e) => updateFilter("country", e.target.value)}
-                />
+                <Select value={filters.country || "all"} onValueChange={(v) => { updateFilter("country", v === "all" ? "" : v); updateFilter("city", ""); }}>
+                  <SelectTrigger><SelectValue placeholder={t("search.allCountries")} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("search.allCountries")}</SelectItem>
+                    {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <Label className="text-xs mb-1.5 block">{t("search.city")}</Label>
-                <Input
-                  placeholder={t("search.allCities")}
-                  value={filters.city}
-                  onChange={(e) => updateFilter("city", e.target.value)}
-                />
+                {(CITIES_BY_COUNTRY[filters.country] || []).length > 0 ? (
+                  <Select value={filters.city || "all"} onValueChange={(v) => updateFilter("city", v === "all" ? "" : v)}>
+                    <SelectTrigger><SelectValue placeholder={t("search.allCities")} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t("search.allCities")}</SelectItem>
+                      {(CITIES_BY_COUNTRY[filters.country] || []).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input placeholder={t("search.allCities")} value={filters.city} onChange={(e) => updateFilter("city", e.target.value)} />
+                )}
               </div>
 
               <div>
@@ -195,11 +223,13 @@ export default function Search() {
 
               <div>
                 <Label className="text-xs mb-1.5 block">{t("search.nationality")}</Label>
-                <Input
-                  placeholder={t("search.any")}
-                  value={filters.nationality}
-                  onChange={(e) => updateFilter("nationality", e.target.value)}
-                />
+                <Select value={filters.nationality || "all"} onValueChange={(v) => updateFilter("nationality", v === "all" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder={t("search.any")} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("search.any")}</SelectItem>
+                    {NATIONALITIES.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

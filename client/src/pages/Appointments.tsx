@@ -145,8 +145,11 @@ function AppointmentList({ appointments, isLoading, role, userId, onUpdateStatus
                   <X className="h-3 w-3" /> {t("appointments.cancel")}
                 </Button>
               )}
-              {role === "client" && appt.status === "completed" && (
+              {role === "client" && appt.status === "completed" && !appt.hasReviewed && (
                 <ReviewDialog appointmentId={appt.id} professionalId={appt.professionalId} />
+              )}
+              {role === "client" && appt.status === "completed" && appt.hasReviewed && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30 gap-1"><CheckCircle className="h-3 w-3" /> {t("appointments.reviewed")}</Badge>
               )}
             </div>
           </div>

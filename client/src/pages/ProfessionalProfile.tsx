@@ -254,18 +254,23 @@ export default function ProfessionalProfile() {
           </TabsContent>
 
           <TabsContent value="availability" className="mt-4">
-            {profile.availability && profile.availability.length > 0 ? (
-              <div className="border border-border bg-card p-5">
-                <div className="space-y-2">
-                  {profile.availability.map((slot, i) => (
-                    <div key={i} className="flex items-center gap-4 py-2 border-b border-border last:border-0">
-                      <span className="font-medium w-28">{DAYS[slot.dayOfWeek]}</span>
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" /> {slot.startTime} - {slot.endTime}
-                      </span>
+            {profile.professions && profile.professions.some((p: any) => p.availability && p.availability.length > 0) ? (
+              <div className="space-y-4">
+                {profile.professions.filter((p: any) => p.availability && p.availability.length > 0).map((p: any) => (
+                  <div key={p.id} className="border border-border bg-card p-5">
+                    <h4 className="font-semibold mb-3">{lang === 'ar' && p.serviceNameAr ? p.serviceNameAr : p.serviceName} — {p.country}{p.city ? `, ${p.city}` : ''}</h4>
+                    <div className="space-y-2">
+                      {p.availability.map((slot: any, i: number) => (
+                        <div key={i} className="flex items-center gap-4 py-2 border-b border-border last:border-0">
+                          <span className="font-medium w-28">{DAYS[slot.dayOfWeek]}</span>
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5" /> {slot.startTime} - {slot.endTime}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="text-center py-12 border border-dashed border-border">
