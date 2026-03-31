@@ -9,7 +9,7 @@ import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Star, Crown, Award, MapPin, Users, DollarSign, Calendar, MessageSquare,
-  Loader2, Globe, Clock, Briefcase, ChevronLeft, Building2
+  Loader2, Clock, Briefcase, ChevronLeft, Building2
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { toast } from "sonner";
@@ -36,9 +36,7 @@ export default function ProfessionalProfile() {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <div className="flex-1 flex items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>
       </div>
     );
   }
@@ -47,70 +45,68 @@ export default function ProfessionalProfile() {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">{t("profProfile.notFound")}</p>
-        </div>
+        <div className="flex-1 flex items-center justify-center"><p className="text-muted-foreground">{t("profProfile.notFound")}</p></div>
         <Footer />
       </div>
     );
   }
 
   const displayName = profile.firstName && profile.lastName
-    ? `${profile.firstName} ${profile.lastName}`
-    : profile.name || "Professional";
+    ? `${profile.firstName} ${profile.lastName}` : profile.name || "Professional";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <div className="container py-8 flex-1">
-        <Link href="/search">
-          <Button variant="ghost" size="sm" className="gap-1 mb-4">
-            <ChevronLeft className="h-4 w-4" /> {t("profProfile.backToSearch")}
-          </Button>
-        </Link>
+      {/* Hero Header */}
+      <section className="gradient-hero py-10 border-b border-border/30">
+        <div className="container">
+          <Link href="/search">
+            <Button variant="ghost" size="sm" className="gap-1.5 mb-5 rounded-full hover:bg-primary/10">
+              <ChevronLeft className="h-4 w-4 rtl-flip" /> {t("profProfile.backToSearch")}
+            </Button>
+          </Link>
 
-        {/* Profile Header */}
-        <div className="border border-border bg-card p-6 md:p-8 mb-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            <Avatar className="h-24 w-24 border-2 border-border shrink-0">
+          <div className="flex flex-col md:flex-row gap-6 animate-slide-up">
+            <Avatar className="h-28 w-28 border-4 border-primary/20 shrink-0 shadow-xl shadow-primary/10">
               {profile.profilePhoto ? (
                 <img src={profile.profilePhoto} alt={displayName} className="object-cover h-full w-full" />
               ) : (
-                <AvatarFallback className="bg-primary/10 text-primary font-serif text-3xl">
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-purple-vivid/20 text-primary font-serif text-4xl">
                   {displayName.charAt(0)}
                 </AvatarFallback>
               )}
             </Avatar>
 
             <div className="flex-1">
-              <div className="flex items-start justify-between flex-wrap gap-2">
+              <div className="flex items-start justify-between flex-wrap gap-3">
                 <div>
-                  <h1 className="font-serif text-2xl md:text-3xl font-bold">{displayName}</h1>
-                  <div className="flex items-center gap-2 mt-1">
+                  <h1 className="font-serif text-3xl md:text-4xl font-bold">{displayName}</h1>
+                  <div className="flex items-center gap-2 mt-2">
                     {profile.isPremium && (
-                      <Badge className="gap-1 bg-primary text-primary-foreground">
-                        <Crown className="h-3 w-3" /> {t("common.premium")}
+                      <Badge className="gap-1.5 bg-gradient-to-r from-primary to-purple-vivid text-white rounded-full px-3 py-1">
+                        <Crown className="h-3.5 w-3.5" /> {t("common.premium")}
                       </Badge>
                     )}
                     {profile.isStarred && (
-                      <Badge variant="outline" className="gap-1 border-primary text-primary">
-                        <Award className="h-3 w-3" /> {t("common.starred")}
+                      <Badge variant="outline" className="gap-1.5 border-gold text-gold rounded-full px-3 py-1">
+                        <Award className="h-3.5 w-3.5" /> {t("common.starred")}
                       </Badge>
                     )}
                   </div>
                 </div>
 
                 {isAuthenticated && user?.id !== userId && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5">
                     <Link href={`/book/${userId}`}>
-                      <Button className="gap-2">
+                      <Button size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20 px-6">
                         <Calendar className="h-4 w-4" /> {t("profProfile.bookAppointment")}
                       </Button>
                     </Link>
                     <Button
                       variant="outline"
-                      className="gap-2"
+                      size="lg"
+                      className="gap-2.5 rounded-full hover:bg-primary/5 hover:border-primary/40 px-6"
                       onClick={() => startChatMutation.mutate({ userId })}
                       disabled={startChatMutation.isPending}
                     >
@@ -121,66 +117,65 @@ export default function ProfessionalProfile() {
               </div>
 
               {profile.bio && (
-                <p className="text-muted-foreground mt-4 leading-relaxed">{profile.bio}</p>
+                <p className="text-muted-foreground mt-4 leading-relaxed max-w-2xl">{profile.bio}</p>
               )}
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Tabs */}
+      <div className="container py-8 flex-1">
         <Tabs defaultValue="professions">
-          <TabsList>
-            <TabsTrigger value="professions">{t("profProfile.services")} ({profile.professions.length})</TabsTrigger>
-            <TabsTrigger value="reviews">{t("profProfile.reviews")} ({reviewsData?.length || 0})</TabsTrigger>
-            <TabsTrigger value="availability">{t("profProfile.availability")}</TabsTrigger>
+          <TabsList className="bg-muted/50 rounded-full p-1">
+            <TabsTrigger value="professions" className="rounded-full">{t("profProfile.services")} ({profile.professions.length})</TabsTrigger>
+            <TabsTrigger value="reviews" className="rounded-full">{t("profProfile.reviews")} ({reviewsData?.length || 0})</TabsTrigger>
+            <TabsTrigger value="availability" className="rounded-full">{t("profProfile.availability")}</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="professions" className="mt-4">
+          <TabsContent value="professions" className="mt-6">
             {profile.professions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {profile.professions.map((prof) => (
-                  <div key={prof.id} className="border border-border bg-card p-5">
+                  <div key={prof.id} className="bg-card border border-border/60 rounded-xl p-6 hover:border-primary/30 transition-all hover:shadow-md group">
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="font-serif font-semibold text-lg">{prof.serviceName}</h3>
-                        <p className="text-sm text-muted-foreground">{prof.categoryName}</p>
+                        <h3 className="font-serif font-bold text-lg group-hover:text-primary transition-colors">{lang === "ar" && prof.serviceNameAr ? prof.serviceNameAr : prof.serviceName}</h3>
+                        <p className="text-sm text-muted-foreground">{lang === "ar" && prof.categoryNameAr ? prof.categoryNameAr : prof.categoryName}</p>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1">
                         <Star className="h-4 w-4 fill-primary text-primary" />
-                        <span className="font-medium">{parseFloat(prof.avgRating || "0").toFixed(1)}</span>
+                        <span className="font-bold text-primary text-sm">{parseFloat(prof.avgRating || "0").toFixed(1)}</span>
                       </div>
                     </div>
 
-                    {/* Location */}
                     {(prof.country || prof.city) && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
-                        <MapPin className="h-3.5 w-3.5" />
+                      <p className="text-sm text-muted-foreground flex items-center gap-1.5 mb-3">
+                        <MapPin className="h-3.5 w-3.5 text-primary" />
                         {[prof.city, prof.country].filter(Boolean).join(", ")}
                       </p>
                     )}
 
                     <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                       {prof.costPerHour && (
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="h-3.5 w-3.5" /> {prof.costPerHour}/hr
+                        <span className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1">
+                          <DollarSign className="h-3.5 w-3.5 text-gold" /> {prof.costPerHour}/hr
                         </span>
                       )}
                       {prof.yearsOfExperience && prof.yearsOfExperience > 0 && (
-                        <span className="flex items-center gap-1">
-                          <Briefcase className="h-3.5 w-3.5" /> {prof.yearsOfExperience} {t("profProfile.years")}
+                        <span className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1">
+                          <Briefcase className="h-3.5 w-3.5 text-primary" /> {prof.yearsOfExperience} {t("profProfile.years")}
                         </span>
                       )}
                       {prof.hasTeam && (
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3.5 w-3.5" /> {t("common.team")}: {prof.teamSize}
+                        <span className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1">
+                          <Users className="h-3.5 w-3.5 text-primary" /> {t("common.team")}: {prof.teamSize}
                         </span>
                       )}
                     </div>
 
-                    {/* Office Info */}
                     {prof.hasOffice && (
-                      <div className="mt-3 p-3 bg-muted/30 border border-border text-sm">
-                        <p className="font-medium flex items-center gap-1 mb-1">
+                      <div className="mt-4 p-3.5 bg-primary/5 border border-primary/10 rounded-lg text-sm">
+                        <p className="font-semibold flex items-center gap-1.5 mb-1 text-primary">
                           <Building2 className="h-3.5 w-3.5" /> {t("profProfile.office")}
                         </p>
                         <p className="text-muted-foreground">
@@ -190,9 +185,9 @@ export default function ProfessionalProfile() {
                     )}
 
                     {prof.images && prof.images.length > 0 && (
-                      <div className="flex gap-2 mt-3 overflow-x-auto">
+                      <div className="flex gap-2 mt-4 overflow-x-auto pb-1">
                         {prof.images.map((img) => (
-                          <img key={img.id} src={img.imageUrl} alt="Portfolio" className="h-20 w-20 object-cover border border-border" />
+                          <img key={img.id} src={img.imageUrl} alt="Portfolio" className="h-20 w-20 object-cover rounded-lg border border-border/40" />
                         ))}
                       </div>
                     )}
@@ -200,46 +195,43 @@ export default function ProfessionalProfile() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 border border-dashed border-border">
+              <div className="text-center py-16 border-2 border-dashed border-border rounded-2xl bg-muted/20">
                 <p className="text-muted-foreground">{t("profProfile.noServices")}</p>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="reviews" className="mt-4">
+          <TabsContent value="reviews" className="mt-6">
             {reviewsData && reviewsData.length > 0 ? (
               <div className="space-y-4">
                 {reviewsData.map((review) => (
-                  <div key={review.id} className="border border-border bg-card p-5">
+                  <div key={review.id} className="bg-card border border-border/60 rounded-xl p-5 hover:border-primary/20 transition-all">
                     <div className="flex items-start gap-3">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-11 w-11 ring-2 ring-border/30">
                         {review.reviewerPhoto ? (
                           <img src={review.reviewerPhoto} alt="" className="object-cover h-full w-full" />
                         ) : (
-                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-purple-vivid/20 text-primary text-sm font-bold">
                             {(review.reviewerFirstName || review.reviewerName || "U").charAt(0)}
                           </AvatarFallback>
                         )}
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-sm">
+                          <span className="font-semibold text-sm">
                             {review.reviewerFirstName ? `${review.reviewerFirstName} ${review.reviewerLastName}` : review.reviewerName}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {new Date(review.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <div className="flex items-center gap-0.5 mt-1">
+                        <div className="flex items-center gap-0.5 mt-1.5">
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-3.5 w-3.5 ${i < review.rating ? "fill-primary text-primary" : "text-muted-foreground/30"}`}
-                            />
+                            <Star key={i} className={`h-4 w-4 ${i < review.rating ? "fill-gold text-gold" : "text-muted-foreground/20"}`} />
                           ))}
                         </div>
                         {review.comment && (
-                          <p className="text-sm text-muted-foreground mt-2">{review.comment}</p>
+                          <p className="text-sm text-muted-foreground mt-2.5 leading-relaxed">{review.comment}</p>
                         )}
                       </div>
                     </div>
@@ -247,23 +239,26 @@ export default function ProfessionalProfile() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 border border-dashed border-border">
+              <div className="text-center py-16 border-2 border-dashed border-border rounded-2xl bg-muted/20">
                 <p className="text-muted-foreground">{t("profProfile.noReviews")}</p>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="availability" className="mt-4">
+          <TabsContent value="availability" className="mt-6">
             {profile.professions && profile.professions.some((p: any) => p.availability && p.availability.length > 0) ? (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {profile.professions.filter((p: any) => p.availability && p.availability.length > 0).map((p: any) => (
-                  <div key={p.id} className="border border-border bg-card p-5">
-                    <h4 className="font-semibold mb-3">{lang === 'ar' && p.serviceNameAr ? p.serviceNameAr : p.serviceName} — {p.country}{p.city ? `, ${p.city}` : ''}</h4>
+                  <div key={p.id} className="bg-card border border-border/60 rounded-xl p-6">
+                    <h4 className="font-serif font-bold text-base mb-4 flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      {lang === 'ar' && p.serviceNameAr ? p.serviceNameAr : p.serviceName} — {p.country}{p.city ? `, ${p.city}` : ''}
+                    </h4>
                     <div className="space-y-2">
                       {p.availability.map((slot: any, i: number) => (
-                        <div key={i} className="flex items-center gap-4 py-2 border-b border-border last:border-0">
-                          <span className="font-medium w-28">{DAYS[slot.dayOfWeek]}</span>
-                          <span className="text-muted-foreground flex items-center gap-1">
+                        <div key={i} className="flex items-center gap-4 py-2.5 border-b border-border/30 last:border-0">
+                          <span className="font-medium w-28 text-sm">{DAYS[slot.dayOfWeek]}</span>
+                          <span className="text-muted-foreground flex items-center gap-1.5 text-sm bg-muted/50 rounded-full px-3 py-1">
                             <Clock className="h-3.5 w-3.5" /> {slot.startTime} - {slot.endTime}
                           </span>
                         </div>
@@ -273,7 +268,7 @@ export default function ProfessionalProfile() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 border border-dashed border-border">
+              <div className="text-center py-16 border-2 border-dashed border-border rounded-2xl bg-muted/20">
                 <p className="text-muted-foreground">{t("profProfile.noAvailability")}</p>
               </div>
             )}

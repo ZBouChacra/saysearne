@@ -454,6 +454,14 @@ const translations: Record<Language, Record<string, string>> = {
     "profile.customer": "Customer",
     "profile.professional": "Professional",
     "profile.profileTypeDesc": "Switch to Professional to manage services and availability",
+
+    // Home extra badges/stats
+    "home.hero.badge": "Professional Services Marketplace",
+    "home.stat.countries": "Countries",
+    "home.stat.professionals": "Professionals",
+    "home.stat.satisfaction": "Satisfaction",
+    "home.topRatedBadge": "TOP RATED",
+    "home.categoriesBadge": "EXPLORE",
   },
   ar: {
     // Navbar
@@ -897,6 +905,14 @@ const translations: Record<Language, Record<string, string>> = {
     "profile.customer": "عميل",
     "profile.professional": "محترف",
     "profile.profileTypeDesc": "التبديل إلى محترف لإدارة الخدمات والتوفر",
+
+    // Home extra badges/stats
+    "home.hero.badge": "سوق الخدمات المهنية",
+    "home.stat.countries": "دولة",
+    "home.stat.professionals": "محترف",
+    "home.stat.satisfaction": "رضا العملاء",
+    "home.topRatedBadge": "الأعلى تقييماً",
+    "home.categoriesBadge": "استكشف",
   },
 };
 

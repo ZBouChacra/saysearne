@@ -124,3 +124,10 @@
 - [x] 19. Fix: categories on home page not translated to Arabic
 - [x] 20. Advertisements: auto-flip carousel with 1.5s interval when page width < ad width
 - [x] 21. Contact messages: status (Pending/In Progress/Closed), filter, admin reply, auto-email on status change
+
+## UI Redesign & Mobile App (Round 3)
+- [x] Fix RTL arrow directions in Arabic mode (arrows should not flip)
+- [x] Redesign UI to be more vivid and alive (gradients, animations, richer colors)
+- [ ] Set up Capacitor for APK and iOS app generation (requires native toolchain)
+- [ ] Generate APK build configuration (requires Android Studio)
+- [ ] Provide iOS build configuration (requires Xcode on macOS)

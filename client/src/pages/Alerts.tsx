@@ -33,7 +33,7 @@ export default function Alerts() {
     onError: (err) => toast.error(err.message),
   });
 
-  if (loading) return <div className="min-h-screen flex flex-col bg-background"><Navbar /><div className="flex-1 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>;
+  if (loading) return <div className="min-h-screen flex flex-col bg-background"><Navbar /><div className="flex-1 flex items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div></div>;
   if (!user) { window.location.href = getLoginUrl(); return null; }
 
   const handleCreate = () => {
@@ -47,75 +47,89 @@ export default function Alerts() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <div className="container py-8 flex-1">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="font-serif text-3xl font-bold flex items-center gap-2">
-            <Bell className="h-7 w-7 text-primary" /> {t("alerts.title")}
-          </h1>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="h-4 w-4" /> {t("alerts.create")}</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle className="font-serif">{t("alerts.createAlert")}</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>{t("alerts.name")}</Label>
-                  <Input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className="mt-1.5" placeholder={t("alerts.namePlaceholder")} />
-                </div>
-                <div>
-                  <Label>{t("search.category")}</Label>
-                  <Select value={form.categoryId || "any"} onValueChange={(v) => setForm(f => ({ ...f, categoryId: v === "any" ? "" : v }))}>
-                    <SelectTrigger className="mt-1.5"><SelectValue placeholder={t("search.any")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="any">{t("search.allCategories")}</SelectItem>
-                      {categories?.map(c => <SelectItem key={c.id} value={c.id.toString()}>{lang === "ar" && c.nameAr ? c.nameAr : c.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>{t("search.minStars")}</Label>
-                  <Select value={form.minStars || "any"} onValueChange={(v) => setForm(f => ({ ...f, minStars: v === "any" ? "" : v }))}>
-                    <SelectTrigger className="mt-1.5"><SelectValue placeholder={t("search.any")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="any">{t("search.any")}</SelectItem>
-                      <SelectItem value="3">3+</SelectItem>
-                      <SelectItem value="4">4+</SelectItem>
-                      <SelectItem value="5">5</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>{t("alerts.frequency")}</Label>
-                  <Select value={form.frequency} onValueChange={(v: any) => setForm(f => ({ ...f, frequency: v }))}>
-                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">{t("alerts.daily")}</SelectItem>
-                      <SelectItem value="weekly">{t("alerts.weekly")}</SelectItem>
-                      <SelectItem value="monthly">{t("alerts.monthly")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={handleCreate} className="w-full" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? t("alerts.creating") : t("alerts.create")}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
 
+      {/* Hero */}
+      <section className="gradient-hero py-10 border-b border-border/30">
+        <div className="container">
+          <div className="flex items-center justify-between animate-slide-up">
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center shadow-lg shadow-primary/20">
+                <Bell className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h1 className="font-serif text-3xl md:text-4xl font-bold">{t("alerts.title")}</h1>
+                <p className="text-muted-foreground text-sm mt-0.5">{alerts?.length || 0} {t("alerts.title").toLowerCase()}</p>
+              </div>
+            </div>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20 px-6 h-11">
+                  <Plus className="h-4 w-4" /> {t("alerts.create")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle className="font-serif text-xl">{t("alerts.createAlert")}</DialogTitle></DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-semibold">{t("alerts.name")}</Label>
+                    <Input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} className="mt-1.5 rounded-lg h-11" placeholder={t("alerts.namePlaceholder")} />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold">{t("search.category")}</Label>
+                    <Select value={form.categoryId || "any"} onValueChange={(v) => setForm(f => ({ ...f, categoryId: v === "any" ? "" : v }))}>
+                      <SelectTrigger className="mt-1.5 rounded-lg h-11"><SelectValue placeholder={t("search.any")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">{t("search.allCategories")}</SelectItem>
+                        {categories?.map(c => <SelectItem key={c.id} value={c.id.toString()}>{lang === "ar" && c.nameAr ? c.nameAr : c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold">{t("search.minStars")}</Label>
+                    <Select value={form.minStars || "any"} onValueChange={(v) => setForm(f => ({ ...f, minStars: v === "any" ? "" : v }))}>
+                      <SelectTrigger className="mt-1.5 rounded-lg h-11"><SelectValue placeholder={t("search.any")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">{t("search.any")}</SelectItem>
+                        <SelectItem value="3">3+</SelectItem>
+                        <SelectItem value="4">4+</SelectItem>
+                        <SelectItem value="5">5</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold">{t("alerts.frequency")}</Label>
+                    <Select value={form.frequency} onValueChange={(v: any) => setForm(f => ({ ...f, frequency: v }))}>
+                      <SelectTrigger className="mt-1.5 rounded-lg h-11"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">{t("alerts.daily")}</SelectItem>
+                        <SelectItem value="weekly">{t("alerts.weekly")}</SelectItem>
+                        <SelectItem value="monthly">{t("alerts.monthly")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={handleCreate} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" disabled={createMutation.isPending}>
+                    {createMutation.isPending ? t("alerts.creating") : t("alerts.create")}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      </section>
+
+      <div className="container py-8 flex-1">
         {isLoading ? (
-          <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+          <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
         ) : alerts && alerts.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {alerts.map((alert) => {
               const criteria = alert.searchCriteria as any;
               const cat = categories?.find(c => c.id === criteria?.categoryId);
               return (
-                <div key={alert.id} className="border border-border bg-card p-5 flex items-center justify-between">
+                <div key={alert.id} className="bg-card border border-border/60 rounded-xl p-5 flex items-center justify-between hover:border-primary/30 transition-all hover:shadow-md group">
                   <div>
-                    <h3 className="font-semibold">{alert.name}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-serif font-bold text-base group-hover:text-primary transition-colors">{alert.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
                       {cat ? (lang === "ar" && cat.nameAr ? cat.nameAr : cat.name) : t("search.allCategories")}
                       {criteria?.minStars ? ` · ${criteria.minStars}+ ${t("search.rating")}` : ""}
                       {` · ${t(`alerts.${alert.frequency}`)}`}
@@ -123,9 +137,9 @@ export default function Alerts() {
                   </div>
                   <div className="flex gap-2">
                     <Link href={`/search?categoryId=${criteria?.categoryId || ""}&minStars=${criteria?.minStars || ""}`}>
-                      <Button variant="outline" size="sm" className="gap-1"><Play className="h-3 w-3" /> {t("alerts.run")}</Button>
+                      <Button variant="outline" size="sm" className="gap-1.5 rounded-full hover:bg-primary/5 hover:border-primary/40"><Play className="h-3.5 w-3.5" /> {t("alerts.run")}</Button>
                     </Link>
-                    <Button variant="ghost" size="sm" className="text-destructive" onClick={() => deleteMutation.mutate({ id: alert.id })}>
+                    <Button variant="ghost" size="sm" className="text-destructive rounded-lg" onClick={() => deleteMutation.mutate({ id: alert.id })}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -134,9 +148,9 @@ export default function Alerts() {
             })}
           </div>
         ) : (
-          <div className="text-center py-12 border border-dashed border-border">
-            <Bell className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">{t("alerts.noAlerts")}</p>
+          <div className="text-center py-20 border-2 border-dashed border-border rounded-2xl bg-muted/20">
+            <Bell className="h-14 w-14 mx-auto text-muted-foreground/30 mb-4" />
+            <p className="text-muted-foreground text-lg">{t("alerts.noAlerts")}</p>
           </div>
         )}
       </div>

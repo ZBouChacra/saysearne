@@ -100,8 +100,11 @@ export default function Search() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <div className="container py-8 flex-1">
-        <h1 className="font-serif text-3xl font-bold mb-6">{t("search.title")}</h1>
+      <div className="container py-10 flex-1">
+        <div className="mb-8">
+          <h1 className="font-serif text-3xl md:text-4xl font-bold">{t("search.title")}</h1>
+          <p className="text-muted-foreground mt-1">{t("search.subtitle") || "Discover top professionals near you"}</p>
+        </div>
 
         {/* Quick Search */}
         <div className="flex gap-3 mb-6">
@@ -110,19 +113,19 @@ export default function Search() {
               placeholder={t("search.firstName")}
               value={filters.firstName}
               onChange={(e) => updateFilter("firstName", e.target.value)}
-              className="max-w-xs"
+              className="max-w-xs rounded-lg"
             />
             <Input
               placeholder={t("search.lastName")}
               value={filters.lastName}
               onChange={(e) => updateFilter("lastName", e.target.value)}
-              className="max-w-xs"
+              className="max-w-xs rounded-lg"
             />
           </div>
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="gap-2"
+            className="gap-2 rounded-full border-2 hover:border-primary/50"
           >
             <Filter className="h-4 w-4" />
             {t("search.filters")}
@@ -132,7 +135,7 @@ export default function Search() {
 
         {/* Advanced Filters */}
         {showFilters && (
-          <div className="border border-border bg-card p-6 mb-6 space-y-4">
+          <div className="rounded-xl border border-border/60 bg-card p-6 mb-6 space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
               <h3 className="font-serif font-semibold">{t("search.advancedFilters")}</h3>
               <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
@@ -393,10 +396,10 @@ export default function Search() {
             )}
           </>
         ) : (
-          <div className="text-center py-16 border border-dashed border-border">
-            <SearchIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">{t("search.noResults")}</p>
-            <Button variant="ghost" className="mt-4" onClick={clearFilters}>{t("search.clearFilters")}</Button>
+          <div className="text-center py-20 rounded-2xl border-2 border-dashed border-border bg-muted/20">
+            <SearchIcon className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+            <p className="text-muted-foreground text-lg">{t("search.noResults")}</p>
+            <Button variant="ghost" className="mt-4 rounded-full" onClick={clearFilters}>{t("search.clearFilters")}</Button>
           </div>
         )}
       </div>
