@@ -131,3 +131,6 @@
 - [ ] Set up Capacitor for APK and iOS app generation (requires native toolchain)
 - [ ] Generate APK build configuration (requires Android Studio)
 - [ ] Provide iOS build configuration (requires Xcode on macOS)
+
+## Bug Fixes (Round 4)
+- [x] Fix: availability table missing professionId column causing error on /professional/:id page
