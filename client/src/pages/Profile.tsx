@@ -59,7 +59,7 @@ export default function Profile() {
       <section className="gradient-hero py-10 border-b border-border/30">
         <div className="container">
           <div className="flex items-center gap-4 animate-slide-up">
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#4A9B82] to-[#2D6D5F] flex items-center justify-center shadow-lg shadow-primary/20">
               <User className="h-7 w-7 text-white" />
             </div>
             <div>
@@ -119,7 +119,7 @@ function PersonalInfoForm() {
   return (
     <form onSubmit={handleSubmit} className="bg-card border border-border/60 rounded-2xl p-8 space-y-6 max-w-2xl shadow-sm">
       {/* Profile Type Toggle */}
-      <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-purple-vivid/5 p-5">
+      <div className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-[#4A9B82]/10 p-5">
         <div className="flex items-center gap-3 mb-2">
           <Sparkles className="h-5 w-5 text-primary" />
           <Label className="font-serif font-bold text-base">{t("profile.profileType")}</Label>
@@ -187,7 +187,7 @@ function PersonalInfoForm() {
         <Label className="text-sm font-semibold">{t("profile.bio")}</Label>
         <Textarea value={form.bio} onChange={(e) => setForm(f => ({ ...f, bio: e.target.value }))} rows={4} className="mt-1.5 rounded-lg" />
       </div>
-      <Button type="submit" size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-lg shadow-primary/20 px-8 h-12" disabled={updateMutation.isPending}>
+      <Button type="submit" size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-lg shadow-primary/20 px-8 h-12" disabled={updateMutation.isPending}>
         <Save className="h-5 w-5" /> {updateMutation.isPending ? t("profile.saving") : t("profile.saveChanges")}
       </Button>
     </form>
@@ -244,7 +244,7 @@ function ProfessionsManager({ days }: { days: string[] }) {
         <p className="text-sm text-muted-foreground">{myProfs?.length || 0} {t("profile.servicesListed")}</p>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20">
+            <Button className="gap-2 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-md shadow-primary/20">
               <Plus className="h-4 w-4" /> {t("profile.addService")}
             </Button>
           </DialogTrigger>
@@ -344,7 +344,7 @@ function ProfessionsManager({ days }: { days: string[] }) {
               </div>
 
               <div><Label className="text-sm font-semibold">{t("profile.geographicAreas")}</Label><Input value={newProf.geographicAreas} onChange={(e) => setNewProf(f => ({ ...f, geographicAreas: e.target.value }))} className="mt-1.5 rounded-lg" placeholder="New York, Los Angeles" /></div>
-              <Button onClick={handleAdd} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" disabled={addMutation.isPending}>{addMutation.isPending ? t("profile.adding") : t("profile.addService")}</Button>
+              <Button onClick={handleAdd} size="lg" className="w-full rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90" disabled={addMutation.isPending}>{addMutation.isPending ? t("profile.adding") : t("profile.addService")}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -454,7 +454,7 @@ function AvailabilityManager({ days }: { days: string[] }) {
         </div>
       )}
 
-      <Button onClick={() => saveMutation.mutate({ professionId: selectedProfId, slots })} size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-lg shadow-primary/20 px-8 h-12" disabled={saveMutation.isPending}>
+      <Button onClick={() => saveMutation.mutate({ professionId: selectedProfId, slots })} size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-lg shadow-primary/20 px-8 h-12" disabled={saveMutation.isPending}>
         <Save className="h-5 w-5" /> {saveMutation.isPending ? t("profile.saving") : t("profile.saveAvailability")}
       </Button>
     </div>

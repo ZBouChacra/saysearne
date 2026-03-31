@@ -59,9 +59,9 @@ export default function About() {
             <h2 className="font-serif text-2xl md:text-3xl font-bold mb-6">{t("about.values")}</h2>
             <div className="space-y-5">
               {[
-                { icon: Shield, title: t("about.trust"), desc: t("about.trustDesc"), gradient: "from-primary/15 to-purple-vivid/10" },
+                { icon: Shield, title: t("about.trust"), desc: t("about.trustDesc"), gradient: "from-[#4A9B82]/15 to-[#2D6D5F]/10" },
                 { icon: Star, title: t("about.meritocracy"), desc: t("about.meritocracyDesc"), gradient: "from-gold/15 to-gold-warm/10" },
-                { icon: Globe, title: t("about.omnichannel"), desc: t("about.omnichannelDesc"), gradient: "from-purple-vivid/15 to-primary/10" },
+                { icon: Globe, title: t("about.omnichannel"), desc: t("about.omnichannelDesc"), gradient: "from-[#2D6D5F]/15 to-[#4A9B82]/10" },
                 { icon: Heart, title: t("about.community"), desc: t("about.communityDesc"), gradient: "from-gold-bright/15 to-gold/10" },
               ].map((v, i) => (
                 <div key={i} className="flex gap-4 p-4 rounded-xl bg-card border border-border/40 hover:border-primary/30 transition-all hover:shadow-sm">

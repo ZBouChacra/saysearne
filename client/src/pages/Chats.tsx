@@ -11,13 +11,20 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { MessageSquare, Send, Loader2, ArrowLeft, Image, MapPin, Video, Paperclip } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { useSearch } from "wouter";
 
 export default function Chats() {
   const { user, loading } = useAuth();
   const { t } = useLanguage();
-  const [selectedRoom, setSelectedRoom] = useState<number | null>(null);
+  const searchString = useSearch();
+  const initialRoom = useMemo(() => {
+    const params = new URLSearchParams(searchString);
+    const r = params.get('room');
+    return r ? Number(r) : null;
+  }, []);
+  const [selectedRoom, setSelectedRoom] = useState<number | null>(initialRoom);
 
   if (loading) return <div className="min-h-screen flex flex-col bg-background"><Navbar /><div className="flex-1 flex items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div></div>;
   if (!user) { window.location.href = getLoginUrl(); return null; }
@@ -30,7 +37,7 @@ export default function Chats() {
       <section className="gradient-hero py-10 border-b border-border/30">
         <div className="container">
           <div className="flex items-center gap-4 animate-slide-up">
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#4A9B82] to-[#2D6D5F] flex items-center justify-center shadow-lg shadow-primary/20">
               <MessageSquare className="h-7 w-7 text-white" />
             </div>
             <div>
@@ -91,7 +98,7 @@ function RoomList({ userId, selectedRoom, onSelect }: { userId: number; selected
               {room.otherUser?.profilePhoto ? (
                 <img src={room.otherUser.profilePhoto} alt="" className="object-cover h-full w-full" />
               ) : (
-                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-purple-vivid/20 text-primary font-bold">{room.otherUser?.name?.charAt(0) || "?"}</AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-br from-[#4A9B82]/20 to-[#2D6D5F]/20 text-primary font-bold">{room.otherUser?.name?.charAt(0) || "?"}</AvatarFallback>
               )}
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -192,7 +199,7 @@ function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; 
     <>
       <div className="border-b border-border/40 p-4 flex items-center gap-3 bg-muted/20">
         <Button variant="ghost" size="icon" className="md:hidden rounded-lg" onClick={onBack}><ArrowLeft className="h-4 w-4" /></Button>
-        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center">
+        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#4A9B82] to-[#2D6D5F] flex items-center justify-center">
           <MessageSquare className="h-4 w-4 text-white" />
         </div>
         <span className="font-serif font-bold text-sm">{t("chats.conversation")}</span>
@@ -209,7 +216,7 @@ function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; 
               const isMine = msg.senderId === userId;
               return (
                 <div key={msg.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[70%] px-4 py-3 rounded-2xl ${isMine ? "bg-gradient-to-r from-primary to-purple-vivid text-white rounded-br-sm" : "bg-muted rounded-bl-sm"}`}>
+                  <div className={`max-w-[70%] px-4 py-3 rounded-2xl ${isMine ? "bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] text-white rounded-br-sm" : "bg-muted rounded-bl-sm"}`}>
                     {msg.messageType === "text" && <p className="text-sm whitespace-pre-wrap">{msg.content}</p>}
                     {msg.messageType === "image" && (
                       <div>
@@ -270,7 +277,7 @@ function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; 
           </div>
 
           <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={t("chats.typeMessage")} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} className="flex-1 rounded-full h-11" />
-          <Button size="icon" onClick={handleSend} disabled={!text.trim() || sendMutation.isPending} className="rounded-full h-11 w-11 bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20">
+          <Button size="icon" onClick={handleSend} disabled={!text.trim() || sendMutation.isPending} className="rounded-full h-11 w-11 bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-md shadow-primary/20">
             <Send className="h-4 w-4" />
           </Button>
         </div>
@@ -302,7 +309,7 @@ function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; 
               <Label className="text-sm font-semibold">{t("chats.googleMapsLink")} ({t("chats.optional")})</Label>
               <Input value={locationUrl} onChange={(e) => setLocationUrl(e.target.value)} className="mt-1.5 rounded-lg" placeholder="https://maps.google.com/..." />
             </div>
-            <Button onClick={handleSendLocation} disabled={!locationText.trim()} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90">{t("chats.send")}</Button>
+            <Button onClick={handleSendLocation} disabled={!locationText.trim()} size="lg" className="w-full rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90">{t("chats.send")}</Button>
           </div>
         </DialogContent>
       </Dialog>

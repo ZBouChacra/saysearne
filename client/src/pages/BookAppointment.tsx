@@ -74,7 +74,7 @@ export default function BookAppointment() {
             <h2 className="font-serif text-3xl font-bold mb-3">{t("book.requestedTitle")}</h2>
             <p className="text-muted-foreground mb-8 max-w-sm mx-auto">{t("book.requestedDesc")}</p>
             <div className="flex gap-3 justify-center">
-              <Link href="/appointments"><Button size="lg" className="rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 px-8">{t("book.viewAppointments")}</Button></Link>
+              <Link href="/appointments"><Button size="lg" className="rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 px-8">{t("book.viewAppointments")}</Button></Link>
               <Link href={`/professional/${professionalId}`}><Button variant="outline" size="lg" className="rounded-full px-8">{t("book.backToProfile")}</Button></Link>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function BookAppointment() {
             <Button variant="ghost" size="sm" className="gap-1.5 mb-4 rounded-full hover:bg-primary/10"><ChevronLeft className="h-4 w-4 rtl-flip" /> {t("book.back")}</Button>
           </Link>
           <div className="flex items-center gap-4 animate-slide-up">
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#4A9B82] to-[#2D6D5F] flex items-center justify-center shadow-lg shadow-primary/20">
               <Calendar className="h-7 w-7 text-white" />
             </div>
             <div>
@@ -208,7 +208,7 @@ export default function BookAppointment() {
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1.5 rounded-lg" placeholder={t("book.descriptionPlaceholder")} />
             </div>
 
-            <Button type="submit" size="lg" className="w-full gap-2.5 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-lg shadow-primary/20 h-12" disabled={createMutation.isPending || !professionId}>
+            <Button type="submit" size="lg" className="w-full gap-2.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-lg shadow-primary/20 h-12" disabled={createMutation.isPending || !professionId}>
               <Calendar className="h-5 w-5" /> {createMutation.isPending ? t("book.requesting") : t("book.requestAppointment")}
             </Button>
           </form>

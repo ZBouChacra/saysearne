@@ -16,7 +16,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Shield, Users, BarChart3, Megaphone, Mail, Loader2,
   Lock, Unlock, Crown, Star, Trash2, Plus, Calendar, MessageSquare,
-  Eye, DollarSign, UserPlus, Grid3X3, Tag, Settings, ChevronLeft
+  Eye, DollarSign, UserPlus, Grid3X3, Tag, Settings, ChevronLeft,
+  Pencil, FileText, AlertTriangle, CheckCircle2, XCircle
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -32,17 +33,15 @@ export default function Admin() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-
-      {/* Hero */}
-      <section className="gradient-hero py-10 border-b border-border/30">
+      <section className="bg-[#3D1A5D] py-8 border-b border-[#4A9B82]/30">
         <div className="container">
-          <div className="flex items-center gap-4 animate-slide-up">
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#4A9B82] to-[#2D6D5F] flex items-center justify-center shadow-lg">
               <Shield className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="font-serif text-3xl md:text-4xl font-bold">{t("admin.title")}</h1>
-              <p className="text-muted-foreground text-sm mt-0.5">Manage your platform</p>
+              <h1 className="font-serif text-3xl md:text-4xl font-bold text-white">{t("admin.title")}</h1>
+              <p className="text-white/60 text-sm mt-0.5">Manage your platform</p>
             </div>
           </div>
         </div>
@@ -50,18 +49,22 @@ export default function Admin() {
 
       <div className="container py-8 flex-1">
         <Tabs defaultValue="dashboard">
-          <TabsList className="bg-muted/50 rounded-full p-1 flex-wrap">
-            <TabsTrigger value="dashboard" className="gap-2 rounded-full"><BarChart3 className="h-4 w-4" /> {t("admin.dashboard")}</TabsTrigger>
-            <TabsTrigger value="users" className="gap-2 rounded-full"><Users className="h-4 w-4" /> {t("admin.users")}</TabsTrigger>
-            <TabsTrigger value="categories" className="gap-2 rounded-full"><Grid3X3 className="h-4 w-4" /> Categories</TabsTrigger>
-            <TabsTrigger value="ads" className="gap-2 rounded-full"><Megaphone className="h-4 w-4" /> {t("admin.ads")}</TabsTrigger>
-            <TabsTrigger value="chats" className="gap-2 rounded-full"><MessageSquare className="h-4 w-4" /> Chats</TabsTrigger>
-            <TabsTrigger value="contacts" className="gap-2 rounded-full"><Mail className="h-4 w-4" /> {t("admin.contacts")}</TabsTrigger>
-            <TabsTrigger value="config" className="gap-2 rounded-full"><Settings className="h-4 w-4" /> Config</TabsTrigger>
+          <TabsList className="bg-muted/50 rounded-lg p-1 flex-wrap">
+            <TabsTrigger value="dashboard" className="gap-2 rounded-lg"><BarChart3 className="h-4 w-4" /> {t("admin.dashboard")}</TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 rounded-lg"><Users className="h-4 w-4" /> {t("admin.users")}</TabsTrigger>
+            <TabsTrigger value="categories" className="gap-2 rounded-lg"><Grid3X3 className="h-4 w-4" /> Categories</TabsTrigger>
+            <TabsTrigger value="reviews" className="gap-2 rounded-lg"><Star className="h-4 w-4" /> Reviews</TabsTrigger>
+            <TabsTrigger value="payments" className="gap-2 rounded-lg"><DollarSign className="h-4 w-4" /> Payments</TabsTrigger>
+            <TabsTrigger value="ads" className="gap-2 rounded-lg"><Megaphone className="h-4 w-4" /> {t("admin.ads")}</TabsTrigger>
+            <TabsTrigger value="chats" className="gap-2 rounded-lg"><MessageSquare className="h-4 w-4" /> Chats</TabsTrigger>
+            <TabsTrigger value="contacts" className="gap-2 rounded-lg"><Mail className="h-4 w-4" /> {t("admin.contacts")}</TabsTrigger>
+            <TabsTrigger value="config" className="gap-2 rounded-lg"><Settings className="h-4 w-4" /> Config</TabsTrigger>
           </TabsList>
           <TabsContent value="dashboard" className="mt-6"><AdminDashboard /></TabsContent>
           <TabsContent value="users" className="mt-6"><UserManagement /></TabsContent>
           <TabsContent value="categories" className="mt-6"><CategoryServiceManagement /></TabsContent>
+          <TabsContent value="reviews" className="mt-6"><ReviewModeration /></TabsContent>
+          <TabsContent value="payments" className="mt-6"><PaymentReconciliation /></TabsContent>
           <TabsContent value="ads" className="mt-6"><AdManagement /></TabsContent>
           <TabsContent value="chats" className="mt-6"><ChatMonitoring /></TabsContent>
           <TabsContent value="contacts" className="mt-6"><ContactMessages /></TabsContent>
@@ -78,18 +81,18 @@ function AdminDashboard() {
   const { data: stats, isLoading } = trpc.admin.stats.useQuery();
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   const cards = [
-    { label: t("admin.totalUsers"), value: stats?.totalUsers || 0, icon: Users, gradient: "from-blue-500 to-blue-600" },
-    { label: t("admin.professionals"), value: stats?.totalProfessionals || 0, icon: Crown, gradient: "from-primary to-purple-vivid" },
-    { label: t("admin.totalBookings"), value: stats?.totalBookings || 0, icon: Calendar, gradient: "from-green-500 to-green-600" },
-    { label: t("admin.totalReviews"), value: stats?.totalReviews || 0, icon: Star, gradient: "from-amber-500 to-amber-600" },
+    { label: t("admin.totalUsers"), value: stats?.totalUsers || 0, icon: Users, color: "bg-[#4A9B82]" },
+    { label: t("admin.professionals"), value: stats?.totalProfessionals || 0, icon: Crown, color: "bg-[#3D1A5D]" },
+    { label: t("admin.totalBookings"), value: stats?.totalBookings || 0, icon: Calendar, color: "bg-[#2D6D5F]" },
+    { label: t("admin.totalReviews"), value: stats?.totalReviews || 0, icon: Star, color: "bg-[#D4A757]" },
   ];
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
       {cards.map((card, i) => (
-        <div key={i} className="bg-card border border-border/60 rounded-xl p-6 hover:border-primary/30 transition-all hover:shadow-md">
+        <div key={i} className="bg-card border border-border/60 rounded-xl p-6 hover:border-[#4A9B82]/40 transition-all hover:shadow-md">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-muted-foreground font-medium">{card.label}</span>
-            <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-md`}>
+            <div className={`h-10 w-10 rounded-lg ${card.color} flex items-center justify-center shadow-md`}>
               <card.icon className="h-5 w-5 text-white" />
             </div>
           </div>
@@ -125,7 +128,7 @@ function UserManagement() {
         <p className="text-sm text-muted-foreground font-medium">{data?.total || 0} {t("admin.totalUsers").toLowerCase()}</p>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20 px-5">
+            <Button className="gap-2 rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white px-5">
               <UserPlus className="h-4 w-4" /> Create User
             </Button>
           </DialogTrigger>
@@ -146,7 +149,7 @@ function UserManagement() {
                   <SelectContent><SelectItem value="customer">Customer</SelectItem><SelectItem value="professional">Professional</SelectItem></SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => createUser.mutate(createForm)} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" disabled={createUser.isPending || !createForm.email || !createForm.name}>
+              <Button onClick={() => createUser.mutate(createForm)} size="lg" className="w-full rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" disabled={createUser.isPending || !createForm.email || !createForm.name}>
                 {createUser.isPending ? "Creating..." : "Create User"}
               </Button>
             </div>
@@ -155,75 +158,77 @@ function UserManagement() {
       </div>
 
       <div className="bg-card border border-border/60 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/30 border-b border-border/40">
-            <tr>
-              <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.user")}</th>
-              <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.emailCol")}</th>
-              <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.roleCol")}</th>
-              <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Type</th>
-              <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.statusCol")}</th>
-              <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Fee</th>
-              <th className="text-end p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.actionsCol")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.results.map((u: any) => (
-              <tr key={u.id} className="border-t border-border/30 hover:bg-muted/20 transition-colors">
-                <td className="p-4">
-                  <div>
-                    <span className="font-semibold">{u.firstName ? `${u.firstName} ${u.lastName}` : u.name || "—"}</span>
-                    <div className="flex gap-1 mt-1">
-                      {u.isPremium && <Badge className="text-xs bg-gradient-to-r from-primary to-purple-vivid text-white rounded-full">{t("common.premium")}</Badge>}
-                      {u.isStarred && <Badge variant="outline" className="text-xs border-gold text-gold rounded-full">{t("common.starred")}</Badge>}
-                    </div>
-                  </div>
-                </td>
-                <td className="p-4 text-muted-foreground">{u.email || "—"}</td>
-                <td className="p-4">
-                  <Select value={u.role} onValueChange={(v: any) => updateRole.mutate({ userId: u.id, role: v })}>
-                    <SelectTrigger className="h-8 w-24 rounded-lg"><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value="user">User</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
-                  </Select>
-                </td>
-                <td className="p-4"><Badge variant="outline" className="capitalize rounded-full">{u.profileType || 'customer'}</Badge></td>
-                <td className="p-4">
-                  <Badge variant={u.isLocked ? "destructive" : "outline"} className="rounded-full">
-                    {u.isLocked ? t("admin.locked") : t("admin.active")}
-                  </Badge>
-                </td>
-                <td className="p-4">
-                  {u.profileType === 'professional' && (
-                    <div className="flex items-center gap-1.5">
-                      <Switch checked={u.feeEnabled} onCheckedChange={(v) => updateFee.mutate({ userId: u.id, fee: u.professionalFee || "0", enabled: v })} />
-                      {u.feeEnabled && <span className="text-xs font-medium">${u.professionalFee || 0}</span>}
-                    </div>
-                  )}
-                </td>
-                <td className="p-4">
-                  <div className="flex gap-1 justify-end">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedUserId(u.id)} title="View Details" className="rounded-lg hover:bg-primary/10"><Eye className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => toggleLock.mutate({ userId: u.id, isLocked: !u.isLocked })} className="rounded-lg hover:bg-primary/10">
-                      {u.isLocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                    </Button>
-                    {u.profileType === 'professional' && (
-                      <>
-                        <Button variant="ghost" size="sm" onClick={() => togglePremium.mutate({ userId: u.id, isPremium: !u.isPremium })} className={`rounded-lg hover:bg-primary/10 ${u.isPremium ? "text-primary" : ""}`}><Crown className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="sm" onClick={() => toggleStarred.mutate({ userId: u.id, isStarred: !u.isStarred })} className={`rounded-lg hover:bg-primary/10 ${u.isStarred ? "text-gold" : ""}`}><Star className="h-4 w-4" /></Button>
-                      </>
-                    )}
-                  </div>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/30 border-b border-border/40">
+              <tr>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.user")}</th>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.emailCol")}</th>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.roleCol")}</th>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Type</th>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.statusCol")}</th>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Fee</th>
+                <th className="text-end p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.actionsCol")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data?.results.map((u: any) => (
+                <tr key={u.id} className="border-t border-border/30 hover:bg-muted/20 transition-colors">
+                  <td className="p-4">
+                    <div>
+                      <span className="font-semibold">{u.firstName ? `${u.firstName} ${u.lastName}` : u.name || "—"}</span>
+                      <div className="flex gap-1 mt-1">
+                        {u.isPremium && <Badge className="text-xs bg-[#4A9B82] text-white rounded-lg">{t("common.premium")}</Badge>}
+                        {u.isStarred && <Badge variant="outline" className="text-xs border-[#D4A757] text-[#D4A757] rounded-lg">{t("common.starred")}</Badge>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 text-muted-foreground">{u.email || "—"}</td>
+                  <td className="p-4">
+                    <Select value={u.role} onValueChange={(v: any) => updateRole.mutate({ userId: u.id, role: v })}>
+                      <SelectTrigger className="h-8 w-24 rounded-lg"><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="user">User</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
+                    </Select>
+                  </td>
+                  <td className="p-4"><Badge variant="outline" className="capitalize rounded-lg">{u.profileType || 'customer'}</Badge></td>
+                  <td className="p-4">
+                    <Badge variant={u.isLocked ? "destructive" : "outline"} className="rounded-lg">
+                      {u.isLocked ? t("admin.locked") : t("admin.active")}
+                    </Badge>
+                  </td>
+                  <td className="p-4">
+                    {u.profileType === 'professional' && (
+                      <div className="flex items-center gap-1.5">
+                        <Switch checked={u.feeEnabled} onCheckedChange={(v) => updateFee.mutate({ userId: u.id, fee: u.professionalFee || "0", enabled: v })} />
+                        {u.feeEnabled && <span className="text-xs font-medium">${u.professionalFee || 0}</span>}
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex gap-1 justify-end">
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedUserId(u.id)} title="View Details" className="rounded-lg hover:bg-[#4A9B82]/10"><Eye className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => toggleLock.mutate({ userId: u.id, isLocked: !u.isLocked })} className="rounded-lg hover:bg-[#4A9B82]/10">
+                        {u.isLocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                      </Button>
+                      {u.profileType === 'professional' && (
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => togglePremium.mutate({ userId: u.id, isPremium: !u.isPremium })} className={`rounded-lg hover:bg-[#4A9B82]/10 ${u.isPremium ? "text-[#4A9B82]" : ""}`}><Crown className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="sm" onClick={() => toggleStarred.mutate({ userId: u.id, isStarred: !u.isStarred })} className={`rounded-lg hover:bg-[#D4A757]/10 ${u.isStarred ? "text-[#D4A757]" : ""}`}><Star className="h-4 w-4" /></Button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       {data && data.total > 20 && (
         <div className="flex justify-center gap-2 mt-5">
-          <Button variant="outline" size="sm" className="rounded-full" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
+          <Button variant="outline" size="sm" className="rounded-lg" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
           <span className="flex items-center text-sm text-muted-foreground px-4">Page {page}</span>
-          <Button variant="outline" size="sm" className="rounded-full" disabled={page >= Math.ceil(data.total / 20)} onClick={() => setPage(p => p + 1)}>Next</Button>
+          <Button variant="outline" size="sm" className="rounded-lg" disabled={page >= Math.ceil(data.total / 20)} onClick={() => setPage(p => p + 1)}>Next</Button>
         </div>
       )}
     </div>
@@ -241,10 +246,10 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
 
   return (
     <div>
-      <Button variant="ghost" className="gap-2 mb-5 rounded-full hover:bg-primary/10" onClick={onBack}><ChevronLeft className="h-4 w-4 rtl-flip" /> Back to Users</Button>
+      <Button variant="ghost" className="gap-2 mb-5 rounded-lg hover:bg-[#4A9B82]/10" onClick={onBack}><ChevronLeft className="h-4 w-4 rtl-flip" /> Back to Users</Button>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-card border border-border/60 rounded-xl p-6">
-          <h3 className="font-serif text-xl font-bold mb-5 flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> User Information</h3>
+          <h3 className="font-serif text-xl font-bold mb-5 flex items-center gap-2"><Users className="h-5 w-5 text-[#4A9B82]" /> User Information</h3>
           <div className="space-y-3 text-sm">
             {[
               ["Name", user.firstName ? `${user.firstName} ${user.lastName}` : user.name || "—"],
@@ -260,18 +265,18 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
                 <span className="text-muted-foreground">{label}:</span><span className="font-medium">{value}</span>
               </div>
             ))}
-            <div className="flex justify-between py-1.5 border-b border-border/20"><span className="text-muted-foreground">Role:</span><Badge className="rounded-full">{user.role}</Badge></div>
-            <div className="flex justify-between py-1.5 border-b border-border/20"><span className="text-muted-foreground">Profile Type:</span><Badge variant="outline" className="rounded-full capitalize">{user.profileType}</Badge></div>
-            <div className="flex justify-between py-1.5 border-b border-border/20"><span className="text-muted-foreground">Status:</span><Badge variant={user.isLocked ? "destructive" : "outline"} className="rounded-full">{user.isLocked ? "Locked" : "Active"}</Badge></div>
-            <div className="flex justify-between py-1.5 border-b border-border/20"><span className="text-muted-foreground">Premium:</span><span className={user.isPremium ? "text-primary font-bold" : ""}>{user.isPremium ? "Yes" : "No"}</span></div>
-            <div className="flex justify-between py-1.5"><span className="text-muted-foreground">Starred:</span><span className={user.isStarred ? "text-gold font-bold" : ""}>{user.isStarred ? "Yes" : "No"}</span></div>
+            <div className="flex justify-between py-1.5 border-b border-border/20"><span className="text-muted-foreground">Role:</span><Badge className="rounded-lg">{user.role}</Badge></div>
+            <div className="flex justify-between py-1.5 border-b border-border/20"><span className="text-muted-foreground">Profile Type:</span><Badge variant="outline" className="rounded-lg capitalize">{user.profileType}</Badge></div>
+            <div className="flex justify-between py-1.5 border-b border-border/20"><span className="text-muted-foreground">Status:</span><Badge variant={user.isLocked ? "destructive" : "outline"} className="rounded-lg">{user.isLocked ? "Locked" : "Active"}</Badge></div>
+            <div className="flex justify-between py-1.5 border-b border-border/20"><span className="text-muted-foreground">Premium:</span><span className={user.isPremium ? "text-[#4A9B82] font-bold" : ""}>{user.isPremium ? "Yes" : "No"}</span></div>
+            <div className="flex justify-between py-1.5"><span className="text-muted-foreground">Starred:</span><span className={user.isStarred ? "text-[#D4A757] font-bold" : ""}>{user.isStarred ? "Yes" : "No"}</span></div>
           </div>
           {user.profileType === 'professional' && (
             <div className="mt-5 pt-5 border-t border-border/40">
-              <h4 className="font-semibold mb-3 flex items-center gap-2"><DollarSign className="h-4 w-4 text-gold" /> Professional Fee</h4>
+              <h4 className="font-semibold mb-3 flex items-center gap-2"><DollarSign className="h-4 w-4 text-[#D4A757]" /> Professional Fee</h4>
               <div className="flex gap-2">
                 <Input type="number" placeholder="Fee amount" value={fee || user.professionalFee || ""} onChange={(e) => setFee(e.target.value)} className="w-32 rounded-lg" />
-                <Button size="sm" className="rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" onClick={() => updateFee.mutate({ userId, fee: fee || user.professionalFee || "0", enabled: true })}>Set Fee</Button>
+                <Button size="sm" className="rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" onClick={() => updateFee.mutate({ userId, fee: fee || user.professionalFee || "0", enabled: true })}>Set Fee</Button>
               </div>
               <p className="text-xs text-muted-foreground mt-2">Current: ${user.professionalFee || "0"} ({user.feeEnabled ? "Enabled" : "Disabled"})</p>
             </div>
@@ -279,11 +284,11 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
         </div>
 
         <div className="bg-card border border-border/60 rounded-xl p-6">
-          <h3 className="font-serif text-xl font-bold mb-5 flex items-center gap-2"><Tag className="h-5 w-5 text-primary" /> Services ({user.professions?.length || 0})</h3>
+          <h3 className="font-serif text-xl font-bold mb-5 flex items-center gap-2"><Tag className="h-5 w-5 text-[#4A9B82]" /> Services ({user.professions?.length || 0})</h3>
           {user.professions && user.professions.length > 0 ? (
             <div className="space-y-3">
               {user.professions.map((p: any) => (
-                <div key={p.id} className="border border-border/40 rounded-lg p-4 text-sm hover:border-primary/30 transition-all">
+                <div key={p.id} className="border border-border/40 rounded-lg p-4 text-sm hover:border-[#4A9B82]/30 transition-all">
                   <div className="font-semibold">{p.categoryName} — {p.serviceName}</div>
                   <div className="text-muted-foreground mt-1.5 space-y-0.5">
                     {p.country && <p>{p.country}{p.city ? `, ${p.city}` : ""} · ${p.costPerHour || 0}/hr · {p.yearsOfExperience || 0} yrs exp</p>}
@@ -291,11 +296,6 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
                     {p.hasTeam && <p>Team: {p.teamSize}</p>}
                     <p>Rating: {p.avgRating || 0} ({p.totalReviews || 0} reviews)</p>
                   </div>
-                  {p.availability && p.availability.length > 0 && (
-                    <div className="text-muted-foreground mt-1.5 text-xs">
-                      Availability: {p.availability.map((a: any) => `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][a.dayOfWeek]} ${a.startTime}-${a.endTime}`).join(", ")}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -305,12 +305,12 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
 
       {user.appointments && user.appointments.length > 0 && (
         <div className="bg-card border border-border/60 rounded-xl p-6 mt-6">
-          <h3 className="font-serif text-xl font-bold mb-5 flex items-center gap-2"><Calendar className="h-5 w-5 text-primary" /> Appointments ({user.appointments.length})</h3>
+          <h3 className="font-serif text-xl font-bold mb-5 flex items-center gap-2"><Calendar className="h-5 w-5 text-[#4A9B82]" /> Appointments ({user.appointments.length})</h3>
           <div className="space-y-2">
             {user.appointments.slice(0, 10).map((a: any) => (
               <div key={a.id} className="flex items-center justify-between text-sm border-b border-border/30 pb-2.5">
                 <span>{new Date(a.appointmentDate).toLocaleDateString()} — {a.description || "No description"}</span>
-                <Badge variant={a.status === 'completed' ? 'default' : a.status === 'cancelled' ? 'destructive' : 'outline'} className="rounded-full">{a.status}</Badge>
+                <Badge variant={a.status === 'completed' ? 'default' : a.status === 'cancelled' ? 'destructive' : 'outline'} className="rounded-lg">{a.status}</Badge>
               </div>
             ))}
           </div>
@@ -326,13 +326,15 @@ function CategoryServiceManagement() {
   const utils = trpc.useUtils();
   const [catDialog, setCatDialog] = useState(false);
   const [svcDialog, setSvcDialog] = useState(false);
+  const [editCatDialog, setEditCatDialog] = useState<any>(null);
+  const [editSvcDialog, setEditSvcDialog] = useState<any>(null);
   const [catForm, setCatForm] = useState({ name: "", nameAr: "", description: "", descriptionAr: "", icon: "" });
   const [svcForm, setSvcForm] = useState({ categoryId: 0, name: "", nameAr: "", description: "", descriptionAr: "" });
 
   const createCat = trpc.admin.categories.create.useMutation({ onSuccess: () => { toast.success("Category created"); utils.admin.categories.list.invalidate(); setCatDialog(false); setCatForm({ name: "", nameAr: "", description: "", descriptionAr: "", icon: "" }); } });
-  const updateCat = trpc.admin.categories.update.useMutation({ onSuccess: () => { toast.success("Updated"); utils.admin.categories.list.invalidate(); } });
+  const updateCat = trpc.admin.categories.update.useMutation({ onSuccess: () => { toast.success("Updated"); utils.admin.categories.list.invalidate(); setEditCatDialog(null); } });
   const createSvc = trpc.admin.services.create.useMutation({ onSuccess: () => { toast.success("Service created"); utils.admin.services.list.invalidate(); setSvcDialog(false); setSvcForm({ categoryId: 0, name: "", nameAr: "", description: "", descriptionAr: "" }); } });
-  const updateSvc = trpc.admin.services.update.useMutation({ onSuccess: () => { toast.success("Updated"); utils.admin.services.list.invalidate(); } });
+  const updateSvc = trpc.admin.services.update.useMutation({ onSuccess: () => { toast.success("Updated"); utils.admin.services.list.invalidate(); setEditSvcDialog(null); } });
 
   if (catsLoading || svcsLoading) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
@@ -341,9 +343,9 @@ function CategoryServiceManagement() {
       {/* Categories */}
       <div>
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-serif text-xl font-bold flex items-center gap-2"><Grid3X3 className="h-5 w-5 text-primary" /> Categories ({cats?.length || 0})</h3>
+          <h3 className="font-serif text-xl font-bold flex items-center gap-2"><Grid3X3 className="h-5 w-5 text-[#4A9B82]" /> Categories ({cats?.length || 0})</h3>
           <Dialog open={catDialog} onOpenChange={setCatDialog}>
-            <DialogTrigger asChild><Button className="gap-2 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20 px-5"><Plus className="h-4 w-4" /> New Category</Button></DialogTrigger>
+            <DialogTrigger asChild><Button className="gap-2 rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white px-5"><Plus className="h-4 w-4" /> New Category</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle className="font-serif text-xl">Create Category</DialogTitle></DialogHeader>
               <div className="space-y-3">
@@ -352,7 +354,7 @@ function CategoryServiceManagement() {
                 <div><Label className="text-sm font-semibold">Description (EN)</Label><Input value={catForm.description} onChange={(e) => setCatForm(f => ({ ...f, description: e.target.value }))} className="mt-1 rounded-lg h-11" /></div>
                 <div><Label className="text-sm font-semibold">Description (AR)</Label><Input value={catForm.descriptionAr} onChange={(e) => setCatForm(f => ({ ...f, descriptionAr: e.target.value }))} className="mt-1 rounded-lg h-11" dir="rtl" /></div>
                 <div><Label className="text-sm font-semibold">Icon (Lucide name)</Label><Input value={catForm.icon} onChange={(e) => setCatForm(f => ({ ...f, icon: e.target.value }))} className="mt-1 rounded-lg h-11" placeholder="e.g. Scissors" /></div>
-                <Button onClick={() => createCat.mutate(catForm)} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" disabled={createCat.isPending || !catForm.name}>{createCat.isPending ? "Creating..." : "Create"}</Button>
+                <Button onClick={() => createCat.mutate(catForm)} size="lg" className="w-full rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" disabled={createCat.isPending || !catForm.name}>{createCat.isPending ? "Creating..." : "Create"}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -366,11 +368,16 @@ function CategoryServiceManagement() {
                   <td className="p-4 font-semibold">{c.name}</td>
                   <td className="p-4" dir="rtl">{c.nameAr || "—"}</td>
                   <td className="p-4">{c.icon || "—"}</td>
-                  <td className="p-4"><Badge variant={c.isBlocked ? "destructive" : "outline"} className="rounded-full">{c.isBlocked ? "Blocked" : "Active"}</Badge></td>
+                  <td className="p-4"><Badge variant={c.isBlocked ? "destructive" : "outline"} className="rounded-lg">{c.isBlocked ? "Blocked" : "Active"}</Badge></td>
                   <td className="p-4 text-end">
-                    <Button variant="ghost" size="sm" className="rounded-lg hover:bg-primary/10" onClick={() => updateCat.mutate({ id: c.id, isBlocked: !c.isBlocked })}>
-                      {c.isBlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                    </Button>
+                    <div className="flex gap-1 justify-end">
+                      <Button variant="ghost" size="sm" className="rounded-lg hover:bg-[#4A9B82]/10" onClick={() => setEditCatDialog({ ...c })}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="rounded-lg hover:bg-[#4A9B82]/10" onClick={() => updateCat.mutate({ id: c.id, isBlocked: !c.isBlocked })}>
+                        {c.isBlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -379,12 +386,31 @@ function CategoryServiceManagement() {
         </div>
       </div>
 
+      {/* Edit Category Dialog */}
+      <Dialog open={!!editCatDialog} onOpenChange={(open) => { if (!open) setEditCatDialog(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-serif text-xl">Edit Category</DialogTitle></DialogHeader>
+          {editCatDialog && (
+            <div className="space-y-3">
+              <div><Label className="text-sm font-semibold">Name (EN)</Label><Input value={editCatDialog.name} onChange={(e) => setEditCatDialog((f: any) => ({ ...f, name: e.target.value }))} className="mt-1 rounded-lg h-11" /></div>
+              <div><Label className="text-sm font-semibold">Name (AR)</Label><Input value={editCatDialog.nameAr || ""} onChange={(e) => setEditCatDialog((f: any) => ({ ...f, nameAr: e.target.value }))} className="mt-1 rounded-lg h-11" dir="rtl" /></div>
+              <div><Label className="text-sm font-semibold">Description (EN)</Label><Input value={editCatDialog.description || ""} onChange={(e) => setEditCatDialog((f: any) => ({ ...f, description: e.target.value }))} className="mt-1 rounded-lg h-11" /></div>
+              <div><Label className="text-sm font-semibold">Description (AR)</Label><Input value={editCatDialog.descriptionAr || ""} onChange={(e) => setEditCatDialog((f: any) => ({ ...f, descriptionAr: e.target.value }))} className="mt-1 rounded-lg h-11" dir="rtl" /></div>
+              <div><Label className="text-sm font-semibold">Icon</Label><Input value={editCatDialog.icon || ""} onChange={(e) => setEditCatDialog((f: any) => ({ ...f, icon: e.target.value }))} className="mt-1 rounded-lg h-11" /></div>
+              <Button onClick={() => updateCat.mutate({ id: editCatDialog.id, name: editCatDialog.name, nameAr: editCatDialog.nameAr, description: editCatDialog.description, descriptionAr: editCatDialog.descriptionAr, icon: editCatDialog.icon })} size="lg" className="w-full rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" disabled={updateCat.isPending}>
+                {updateCat.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Services */}
       <div>
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-serif text-xl font-bold flex items-center gap-2"><Tag className="h-5 w-5 text-primary" /> Services ({svcs?.length || 0})</h3>
+          <h3 className="font-serif text-xl font-bold flex items-center gap-2"><Tag className="h-5 w-5 text-[#4A9B82]" /> Services ({svcs?.length || 0})</h3>
           <Dialog open={svcDialog} onOpenChange={setSvcDialog}>
-            <DialogTrigger asChild><Button className="gap-2 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20 px-5"><Plus className="h-4 w-4" /> New Service</Button></DialogTrigger>
+            <DialogTrigger asChild><Button className="gap-2 rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white px-5"><Plus className="h-4 w-4" /> New Service</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle className="font-serif text-xl">Create Service</DialogTitle></DialogHeader>
               <div className="space-y-3">
@@ -398,7 +424,7 @@ function CategoryServiceManagement() {
                 <div><Label className="text-sm font-semibold">Name (AR)</Label><Input value={svcForm.nameAr} onChange={(e) => setSvcForm(f => ({ ...f, nameAr: e.target.value }))} className="mt-1 rounded-lg h-11" dir="rtl" /></div>
                 <div><Label className="text-sm font-semibold">Description (EN)</Label><Input value={svcForm.description} onChange={(e) => setSvcForm(f => ({ ...f, description: e.target.value }))} className="mt-1 rounded-lg h-11" /></div>
                 <div><Label className="text-sm font-semibold">Description (AR)</Label><Input value={svcForm.descriptionAr} onChange={(e) => setSvcForm(f => ({ ...f, descriptionAr: e.target.value }))} className="mt-1 rounded-lg h-11" dir="rtl" /></div>
-                <Button onClick={() => createSvc.mutate(svcForm)} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" disabled={createSvc.isPending || !svcForm.name || !svcForm.categoryId}>{createSvc.isPending ? "Creating..." : "Create"}</Button>
+                <Button onClick={() => createSvc.mutate(svcForm)} size="lg" className="w-full rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" disabled={createSvc.isPending || !svcForm.name || !svcForm.categoryId}>{createSvc.isPending ? "Creating..." : "Create"}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -412,14 +438,234 @@ function CategoryServiceManagement() {
                   <td className="p-4 font-semibold">{s.name}</td>
                   <td className="p-4" dir="rtl">{s.nameAr || "—"}</td>
                   <td className="p-4">{cats?.find((c: any) => c.id === s.categoryId)?.name || "—"}</td>
-                  <td className="p-4"><Badge variant={s.isBlocked ? "destructive" : "outline"} className="rounded-full">{s.isBlocked ? "Blocked" : "Active"}</Badge></td>
+                  <td className="p-4"><Badge variant={s.isBlocked ? "destructive" : "outline"} className="rounded-lg">{s.isBlocked ? "Blocked" : "Active"}</Badge></td>
                   <td className="p-4 text-end">
-                    <Button variant="ghost" size="sm" className="rounded-lg hover:bg-primary/10" onClick={() => updateSvc.mutate({ id: s.id, isBlocked: !s.isBlocked })}>
-                      {s.isBlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                    </Button>
+                    <div className="flex gap-1 justify-end">
+                      <Button variant="ghost" size="sm" className="rounded-lg hover:bg-[#4A9B82]/10" onClick={() => setEditSvcDialog({ ...s })}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="rounded-lg hover:bg-[#4A9B82]/10" onClick={() => updateSvc.mutate({ id: s.id, isBlocked: !s.isBlocked })}>
+                        {s.isBlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Edit Service Dialog */}
+      <Dialog open={!!editSvcDialog} onOpenChange={(open) => { if (!open) setEditSvcDialog(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-serif text-xl">Edit Service</DialogTitle></DialogHeader>
+          {editSvcDialog && (
+            <div className="space-y-3">
+              <div><Label className="text-sm font-semibold">Name (EN)</Label><Input value={editSvcDialog.name} onChange={(e) => setEditSvcDialog((f: any) => ({ ...f, name: e.target.value }))} className="mt-1 rounded-lg h-11" /></div>
+              <div><Label className="text-sm font-semibold">Name (AR)</Label><Input value={editSvcDialog.nameAr || ""} onChange={(e) => setEditSvcDialog((f: any) => ({ ...f, nameAr: e.target.value }))} className="mt-1 rounded-lg h-11" dir="rtl" /></div>
+              <div><Label className="text-sm font-semibold">Description (EN)</Label><Input value={editSvcDialog.description || ""} onChange={(e) => setEditSvcDialog((f: any) => ({ ...f, description: e.target.value }))} className="mt-1 rounded-lg h-11" /></div>
+              <div><Label className="text-sm font-semibold">Description (AR)</Label><Input value={editSvcDialog.descriptionAr || ""} onChange={(e) => setEditSvcDialog((f: any) => ({ ...f, descriptionAr: e.target.value }))} className="mt-1 rounded-lg h-11" dir="rtl" /></div>
+              <Button onClick={() => updateSvc.mutate({ id: editSvcDialog.id, name: editSvcDialog.name, nameAr: editSvcDialog.nameAr, description: editSvcDialog.description, descriptionAr: editSvcDialog.descriptionAr })} size="lg" className="w-full rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" disabled={updateSvc.isPending}>
+                {updateSvc.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function ReviewModeration() {
+  const { data: reviews, isLoading } = trpc.admin.reviews.list.useQuery();
+  const utils = trpc.useUtils();
+  const deleteMutation = trpc.admin.reviews.delete.useMutation({
+    onSuccess: () => { toast.success("Review removed"); utils.admin.reviews.list.invalidate(); },
+    onError: (err: any) => toast.error(err.message),
+  });
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="font-serif text-xl font-bold flex items-center gap-2"><Star className="h-5 w-5 text-[#D4A757]" /> Review Moderation ({reviews?.length || 0})</h3>
+      </div>
+
+      {reviews && reviews.length > 0 ? (
+        <div className="space-y-4">
+          {reviews.map((review: any) => (
+            <div key={review.id} className="bg-card border border-border/60 rounded-xl p-5 hover:border-[#4A9B82]/30 transition-all">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-semibold">{review.reviewerFirstName ? `${review.reviewerFirstName} ${review.reviewerLastName}` : review.reviewerName || "Anonymous"}</span>
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`h-4 w-4 ${i < review.rating ? "text-[#D4A757] fill-[#D4A757]" : "text-muted-foreground/30"}`} />
+                      ))}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {review.comment && <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>}
+                  <p className="text-xs text-muted-foreground mt-2">Professional ID: {review.professionalId} · Appointment ID: {review.appointmentId}</p>
+                </div>
+                <div className="flex items-center gap-2 ms-4">
+                  {confirmDelete === review.id ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-destructive font-medium">Confirm?</span>
+                      <Button size="sm" variant="destructive" className="rounded-lg h-8" onClick={() => { deleteMutation.mutate({ id: review.id }); setConfirmDelete(null); }}>
+                        <CheckCircle2 className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="rounded-lg h-8" onClick={() => setConfirmDelete(null)}>
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="rounded-lg text-destructive hover:bg-destructive/10" onClick={() => setConfirmDelete(review.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 border-2 border-dashed border-border rounded-2xl bg-muted/20">
+          <Star className="h-14 w-14 mx-auto text-muted-foreground/30 mb-4" />
+          <p className="text-muted-foreground text-lg">No reviews yet</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PaymentReconciliation() {
+  const { data: report, isLoading } = trpc.admin.premiumReport.useQuery();
+  const { data: ads } = trpc.admin.ads.list.useQuery();
+
+  if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+
+  const premiumUsers = report?.filter((u: any) => u.isPremium) || [];
+  const starredUsers = report?.filter((u: any) => u.isStarred) || [];
+  const feeEnabledUsers = report?.filter((u: any) => u.feeEnabled) || [];
+  const totalFees = feeEnabledUsers.reduce((sum: number, u: any) => sum + parseFloat(u.professionalFee || "0"), 0);
+  const activeAds = ads?.filter((a: any) => a.isActive) || [];
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h3 className="font-serif text-xl font-bold flex items-center gap-2"><FileText className="h-5 w-5 text-[#4A9B82]" /> Payment Reconciliation Report</h3>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-card border border-border/60 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">Premium Users</span>
+            <Crown className="h-5 w-5 text-[#4A9B82]" />
+          </div>
+          <p className="text-3xl font-serif font-bold">{premiumUsers.length}</p>
+        </div>
+        <div className="bg-card border border-border/60 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">Starred Users</span>
+            <Star className="h-5 w-5 text-[#D4A757]" />
+          </div>
+          <p className="text-3xl font-serif font-bold">{starredUsers.length}</p>
+        </div>
+        <div className="bg-card border border-border/60 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">Total Monthly Fees</span>
+            <DollarSign className="h-5 w-5 text-[#D4A757]" />
+          </div>
+          <p className="text-3xl font-serif font-bold text-[#4A9B82]">${totalFees.toFixed(2)}</p>
+        </div>
+        <div className="bg-card border border-border/60 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-muted-foreground">Active Ads</span>
+            <Megaphone className="h-5 w-5 text-[#3D1A5D]" />
+          </div>
+          <p className="text-3xl font-serif font-bold">{activeAds.length}</p>
+        </div>
+      </div>
+
+      {/* Premium & Fee Users Table */}
+      <div className="bg-card border border-border/60 rounded-xl overflow-hidden">
+        <div className="p-5 border-b border-border/40">
+          <h4 className="font-serif font-bold flex items-center gap-2"><DollarSign className="h-4 w-4 text-[#D4A757]" /> Professional Fee Details</h4>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/30 border-b border-border/40">
+              <tr>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Professional</th>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Email</th>
+                <th className="text-center p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Premium</th>
+                <th className="text-center p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Starred</th>
+                <th className="text-center p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Fee Enabled</th>
+                <th className="text-end p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Monthly Fee</th>
+                <th className="text-center p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report?.map((u: any) => (
+                <tr key={u.id} className="border-t border-border/30 hover:bg-muted/20 transition-colors">
+                  <td className="p-4 font-semibold">{u.firstName ? `${u.firstName} ${u.lastName}` : u.name || "—"}</td>
+                  <td className="p-4 text-muted-foreground">{u.email || "—"}</td>
+                  <td className="p-4 text-center">{u.isPremium ? <CheckCircle2 className="h-5 w-5 text-[#4A9B82] mx-auto" /> : <XCircle className="h-5 w-5 text-muted-foreground/30 mx-auto" />}</td>
+                  <td className="p-4 text-center">{u.isStarred ? <Star className="h-5 w-5 text-[#D4A757] fill-[#D4A757] mx-auto" /> : <XCircle className="h-5 w-5 text-muted-foreground/30 mx-auto" />}</td>
+                  <td className="p-4 text-center">{u.feeEnabled ? <CheckCircle2 className="h-5 w-5 text-[#4A9B82] mx-auto" /> : <XCircle className="h-5 w-5 text-muted-foreground/30 mx-auto" />}</td>
+                  <td className="p-4 text-end font-semibold">${u.professionalFee || "0.00"}</td>
+                  <td className="p-4 text-center">
+                    <Badge variant={u.feeEnabled ? "default" : "outline"} className={`rounded-lg ${u.feeEnabled ? "bg-[#4A9B82]" : ""}`}>
+                      {u.feeEnabled ? "Active" : "Inactive"}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+              {(!report || report.length === 0) && (
+                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No premium or fee-enabled professionals</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Active Ads Summary */}
+      <div className="bg-card border border-border/60 rounded-xl overflow-hidden">
+        <div className="p-5 border-b border-border/40">
+          <h4 className="font-serif font-bold flex items-center gap-2"><Megaphone className="h-4 w-4 text-[#3D1A5D]" /> Active Advertisements</h4>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/30 border-b border-border/40">
+              <tr>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Title</th>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Position</th>
+                <th className="text-center p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ads?.map((ad: any) => (
+                <tr key={ad.id} className="border-t border-border/30 hover:bg-muted/20 transition-colors">
+                  <td className="p-4 font-semibold">{ad.title}</td>
+                  <td className="p-4 text-muted-foreground capitalize">{ad.position?.replace("_", " ")}</td>
+                  <td className="p-4 text-center">
+                    <Badge variant={ad.isActive ? "default" : "outline"} className={`rounded-lg ${ad.isActive ? "bg-[#4A9B82]" : ""}`}>
+                      {ad.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </td>
+                  <td className="p-4 text-muted-foreground">{ad.createdAt ? new Date(ad.createdAt).toLocaleDateString() : "—"}</td>
+                </tr>
+              ))}
+              {(!ads || ads.length === 0) && (
+                <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No advertisements</td></tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -444,7 +690,7 @@ function AdManagement() {
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-muted-foreground font-medium">{ads?.length || 0} {t("admin.adsCount")}</p>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild><Button className="gap-2 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20 px-5"><Plus className="h-4 w-4" /> {t("admin.newAd")}</Button></DialogTrigger>
+          <DialogTrigger asChild><Button className="gap-2 rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white px-5"><Plus className="h-4 w-4" /> {t("admin.newAd")}</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle className="font-serif text-xl">{t("admin.createAd")}</DialogTitle></DialogHeader>
             <div className="space-y-4">
@@ -461,7 +707,7 @@ function AdManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => createMutation.mutate(form)} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" disabled={createMutation.isPending}>{createMutation.isPending ? t("admin.creating") : t("admin.createAd")}</Button>
+              <Button onClick={() => createMutation.mutate(form)} size="lg" className="w-full rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" disabled={createMutation.isPending}>{createMutation.isPending ? t("admin.creating") : t("admin.createAd")}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -469,7 +715,7 @@ function AdManagement() {
       {ads && ads.length > 0 ? (
         <div className="space-y-4">
           {ads.map((ad: any) => (
-            <div key={ad.id} className="bg-card border border-border/60 rounded-xl p-5 flex items-center justify-between hover:border-primary/30 transition-all">
+            <div key={ad.id} className="bg-card border border-border/60 rounded-xl p-5 flex items-center justify-between hover:border-[#4A9B82]/30 transition-all">
               <div className="flex items-center gap-4">
                 {ad.imageUrl && <img src={ad.imageUrl} alt={ad.title} className="h-14 w-24 object-cover rounded-lg border border-border/40" />}
                 <div><h3 className="font-semibold">{ad.title}</h3><p className="text-xs text-muted-foreground mt-0.5">{ad.position.replace("_", " ")} · {ad.isActive ? t("admin.active") : t("admin.inactive")}</p></div>
@@ -497,11 +743,11 @@ function ChatMonitoring() {
 
   return (
     <div>
-      <h3 className="font-serif text-xl font-bold mb-5 flex items-center gap-2"><MessageSquare className="h-5 w-5 text-primary" /> Chat Rooms ({rooms?.length || 0})</h3>
+      <h3 className="font-serif text-xl font-bold mb-5 flex items-center gap-2"><MessageSquare className="h-5 w-5 text-[#4A9B82]" /> Chat Rooms ({rooms?.length || 0})</h3>
       {rooms && rooms.length > 0 ? (
         <div className="space-y-3">
           {rooms.map((r: any) => (
-            <div key={r.id} className="bg-card border border-border/60 rounded-xl p-5 flex items-center justify-between cursor-pointer hover:border-primary/30 transition-all hover:shadow-md" onClick={() => setSelectedRoom(r.id)}>
+            <div key={r.id} className="bg-card border border-border/60 rounded-xl p-5 flex items-center justify-between cursor-pointer hover:border-[#4A9B82]/30 transition-all hover:shadow-md" onClick={() => setSelectedRoom(r.id)}>
               <div>
                 <span className="font-semibold">{r.user1?.name || "User"} ↔ {r.user2?.name || "User"}</span>
                 {r.lastMessage && <p className="text-xs text-muted-foreground mt-1 truncate max-w-md">{r.lastMessage.content || `[${r.lastMessage.messageType}]`}</p>}
@@ -521,19 +767,19 @@ function ChatRoomView({ roomId, onBack }: { roomId: number; onBack: () => void }
 
   return (
     <div>
-      <Button variant="ghost" className="gap-2 mb-5 rounded-full hover:bg-primary/10" onClick={onBack}><ChevronLeft className="h-4 w-4 rtl-flip" /> Back to Rooms</Button>
+      <Button variant="ghost" className="gap-2 mb-5 rounded-lg hover:bg-[#4A9B82]/10" onClick={onBack}><ChevronLeft className="h-4 w-4 rtl-flip" /> Back to Rooms</Button>
       <div className="bg-card border border-border/60 rounded-xl p-5 max-h-[600px] overflow-y-auto space-y-4">
         {messages && [...messages].reverse().map((m: any) => (
           <div key={m.id} className="text-sm border-b border-border/20 pb-3 last:border-0">
             <div className="flex items-center gap-2 mb-1.5">
               <span className="font-semibold">{m.senderName || "User"}</span>
               <span className="text-xs text-muted-foreground">{new Date(m.createdAt).toLocaleString()}</span>
-              {m.messageType !== 'text' && <Badge variant="outline" className="text-xs rounded-full">{m.messageType}</Badge>}
+              {m.messageType !== 'text' && <Badge variant="outline" className="text-xs rounded-lg">{m.messageType}</Badge>}
             </div>
             {m.messageType === 'text' && <p className="text-muted-foreground">{m.content}</p>}
             {m.messageType === 'image' && m.mediaUrl && <img src={m.mediaUrl} alt="shared" className="max-h-40 object-contain rounded-lg border border-border/40" />}
             {m.messageType === 'video' && m.mediaUrl && <video src={m.mediaUrl} controls className="max-h-40 rounded-lg border border-border/40" />}
-            {m.messageType === 'location' && <p className="text-muted-foreground">📍 Location: {m.content}</p>}
+            {m.messageType === 'location' && <p className="text-muted-foreground">Location: {m.content}</p>}
           </div>
         ))}
         {(!messages || messages.length === 0) && <p className="text-muted-foreground text-center py-8">No messages in this room</p>}
@@ -576,14 +822,14 @@ function ContactMessages() {
       {messages && messages.length > 0 ? (
         <div className="space-y-4">
           {messages.map((msg: any) => (
-            <div key={msg.id} className="bg-card border border-border/60 rounded-xl p-6 hover:border-primary/20 transition-all">
+            <div key={msg.id} className="bg-card border border-border/60 rounded-xl p-6 hover:border-[#4A9B82]/20 transition-all">
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="font-serif font-bold text-base">{msg.subject}</h3>
                   <p className="text-sm text-muted-foreground">{msg.email}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={msg.status === 'closed' ? 'default' : msg.status === 'in_progress' ? 'outline' : 'destructive'} className="rounded-full">
+                  <Badge variant={msg.status === 'closed' ? 'default' : msg.status === 'in_progress' ? 'outline' : 'destructive'} className="rounded-lg">
                     {msg.status === 'in_progress' ? 'In Progress' : msg.status}
                   </Badge>
                   <span className="text-xs text-muted-foreground">{new Date(msg.createdAt).toLocaleDateString()}</span>
@@ -591,14 +837,14 @@ function ContactMessages() {
               </div>
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{msg.description}</p>
               {msg.adminReply && (
-                <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 text-sm mb-4 border-s-4 border-s-primary">
-                  <p className="font-semibold text-xs text-primary mb-1.5">Admin Reply ({msg.repliedAt ? new Date(msg.repliedAt).toLocaleDateString() : ""}):</p>
+                <div className="bg-[#4A9B82]/5 border border-[#4A9B82]/10 rounded-lg p-4 text-sm mb-4 border-s-4 border-s-[#4A9B82]">
+                  <p className="font-semibold text-xs text-[#4A9B82] mb-1.5">Admin Reply ({msg.repliedAt ? new Date(msg.repliedAt).toLocaleDateString() : ""}):</p>
                   <p className="text-muted-foreground">{msg.adminReply}</p>
                 </div>
               )}
               <div className="flex gap-2">
                 <Dialog open={replyDialog === msg.id} onOpenChange={(open) => { if (!open) setReplyDialog(null); else { setReplyDialog(msg.id); setReplyStatus(msg.status === 'pending' ? 'in_progress' : msg.status); } }}>
-                  <DialogTrigger asChild><Button variant="outline" size="sm" className="rounded-full hover:bg-primary/5 hover:border-primary/40">Reply / Update Status</Button></DialogTrigger>
+                  <DialogTrigger asChild><Button variant="outline" size="sm" className="rounded-lg hover:bg-[#4A9B82]/5 hover:border-[#4A9B82]/40">Reply / Update Status</Button></DialogTrigger>
                   <DialogContent>
                     <DialogHeader><DialogTitle className="font-serif text-xl">Reply to: {msg.subject}</DialogTitle></DialogHeader>
                     <div className="space-y-4">
@@ -613,7 +859,7 @@ function ContactMessages() {
                         </Select>
                       </div>
                       <div><Label className="text-sm font-semibold">Reply Message (optional)</Label><Textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} className="mt-1 rounded-lg" rows={4} /></div>
-                      <Button onClick={() => replyMutation.mutate({ id: msg.id, status: replyStatus, adminReply: replyText || undefined })} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" disabled={replyMutation.isPending}>
+                      <Button onClick={() => replyMutation.mutate({ id: msg.id, status: replyStatus, adminReply: replyText || undefined })} size="lg" className="w-full rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" disabled={replyMutation.isPending}>
                         {replyMutation.isPending ? "Sending..." : "Update"}
                       </Button>
                     </div>
@@ -653,18 +899,18 @@ function SiteConfiguration() {
 
   return (
     <div className="space-y-6">
-      <h3 className="font-serif text-xl font-bold flex items-center gap-2"><Settings className="h-5 w-5 text-primary" /> Site Configuration</h3>
+      <h3 className="font-serif text-xl font-bold flex items-center gap-2"><Settings className="h-5 w-5 text-[#4A9B82]" /> Site Configuration</h3>
       <div className="bg-card border border-border/60 rounded-xl p-6">
         <h4 className="font-serif font-bold mb-3">About Us Page (English) — JSON</h4>
         <Textarea value={enContent} onChange={(e) => setEnContent(e.target.value)} rows={8} className="font-mono text-xs rounded-lg" />
-        <Button className="mt-3 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 px-6" onClick={() => saveMutation.mutate({ key: "about_us_en", value: enContent })} disabled={saveMutation.isPending}>
+        <Button className="mt-3 rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white px-6" onClick={() => saveMutation.mutate({ key: "about_us_en", value: enContent })} disabled={saveMutation.isPending}>
           {saveMutation.isPending ? "Saving..." : "Save English"}
         </Button>
       </div>
       <div className="bg-card border border-border/60 rounded-xl p-6">
         <h4 className="font-serif font-bold mb-3">About Us Page (Arabic) — JSON</h4>
         <Textarea value={arContent} onChange={(e) => setArContent(e.target.value)} rows={8} className="font-mono text-xs rounded-lg" dir="rtl" />
-        <Button className="mt-3 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 px-6" onClick={() => saveMutation.mutate({ key: "about_us_ar", value: arContent })} disabled={saveMutation.isPending}>
+        <Button className="mt-3 rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white px-6" onClick={() => saveMutation.mutate({ key: "about_us_ar", value: arContent })} disabled={saveMutation.isPending}>
           {saveMutation.isPending ? "Saving..." : "Save Arabic"}
         </Button>
       </div>

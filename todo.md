@@ -134,3 +134,14 @@
 
 ## Bug Fixes (Round 4)
 - [x] Fix: availability table missing professionId column causing error on /professional/:id page
+
+## Design Overhaul & Fixes (Round 5)
+- [x] 1. Redesign like OLX.com.lb with new verdigris/gold/purple color palette
+- [x] 2. Apply new color palette: Verdigris (#4A9B82, #7BB69D, #2D6D5F, #69AA94, #38594D), Gold (#D4A757, #B7873D, #FFE082), Purple (#3D1A5D, #1F045D, #1F082D)
+- [x] 3. Admin: ability to remove inappropriate reviews
+- [x] 4. Chat button redirects to chat instance directly
+- [x] 5. Fix chat not working (nothing being found)
+- [x] 6. Fix unable to edit a category or service in admin
+- [x] 7. Admin: check premium user payment status, ad payments, reconciliation report
+- [x] 8. Change logo to uploaded Phoenician ship emblem
+- [ ] 9. Mobile version guidance (iOS and Android via Capacitor) - requires native toolchain

@@ -25,7 +25,7 @@ export default function Settings() {
       <section className="gradient-hero py-10 border-b border-border/30">
         <div className="container">
           <div className="flex items-center gap-4 animate-slide-up">
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#4A9B82] to-[#2D6D5F] flex items-center justify-center shadow-lg shadow-primary/20">
               <SettingsIcon className="h-7 w-7 text-white" />
             </div>
             <div>

@@ -47,7 +47,7 @@ export default function Contact() {
             </div>
             <h2 className="font-serif text-3xl font-bold mb-3">{t("contact.sentTitle")}</h2>
             <p className="text-muted-foreground text-lg mb-8">{t("contact.sentDesc")}</p>
-            <Button size="lg" className="rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 px-8" onClick={() => { setSent(false); setSubject(""); setDescription(""); }}>
+            <Button size="lg" className="rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 px-8" onClick={() => { setSent(false); setSubject(""); setDescription(""); }}>
               {t("contact.sendAnother")}
             </Button>
           </div>
@@ -132,7 +132,7 @@ export default function Contact() {
                   className="mt-1.5 rounded-lg"
                 />
               </div>
-              <Button type="submit" size="lg" className="gap-2.5 w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-lg shadow-primary/20 h-12 text-base" disabled={sendMutation.isPending}>
+              <Button type="submit" size="lg" className="gap-2.5 w-full rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-lg shadow-primary/20 h-12 text-base" disabled={sendMutation.isPending}>
                 {sendMutation.isPending ? t("contact.sending") : <><Send className="h-5 w-5" /> {t("contact.send")}</>}
               </Button>
             </form>

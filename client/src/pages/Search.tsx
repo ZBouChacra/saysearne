@@ -125,7 +125,7 @@ export default function Search() {
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
-            className="gap-2 rounded-full border-2 hover:border-primary/50"
+            className="gap-2 rounded-lg border border-border hover:border-primary/50"
           >
             <Filter className="h-4 w-4" />
             {t("search.filters")}
@@ -396,10 +396,10 @@ export default function Search() {
             )}
           </>
         ) : (
-          <div className="text-center py-20 rounded-2xl border-2 border-dashed border-border bg-muted/20">
-            <SearchIcon className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+          <div className="text-center py-16 rounded-xl border border-dashed border-border bg-muted/20">
+            <SearchIcon className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
             <p className="text-muted-foreground text-lg">{t("search.noResults")}</p>
-            <Button variant="ghost" className="mt-4 rounded-full" onClick={clearFilters}>{t("search.clearFilters")}</Button>
+            <Button variant="ghost" className="mt-4 rounded-lg" onClick={clearFilters}>{t("search.clearFilters")}</Button>
           </div>
         )}
       </div>

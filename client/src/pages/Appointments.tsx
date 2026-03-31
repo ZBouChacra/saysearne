@@ -46,7 +46,7 @@ export default function Appointments() {
       <section className="gradient-hero py-10 border-b border-border/30">
         <div className="container">
           <div className="flex items-center gap-4 animate-slide-up">
-            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#4A9B82] to-[#2D6D5F] flex items-center justify-center shadow-lg shadow-primary/20">
               <Calendar className="h-7 w-7 text-white" />
             </div>
             <div>
@@ -134,7 +134,7 @@ function AppointmentList({ appointments, isLoading, role, userId, onUpdateStatus
                 </>
               )}
               {role === "professional" && appt.status === "approved" && (
-                <Button size="sm" className="gap-1.5 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" onClick={() => onUpdateStatus(appt.id, "completed")} disabled={isPending}>
+                <Button size="sm" className="gap-1.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90" onClick={() => onUpdateStatus(appt.id, "completed")} disabled={isPending}>
                   <CheckCircle className="h-3.5 w-3.5" /> {t("appointments.complete")}
                 </Button>
               )}
@@ -193,7 +193,7 @@ function ReviewDialog({ appointmentId, professionalId }: { appointmentId: number
           </div>
           <Button
             size="lg"
-            className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90"
+            className="w-full rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90"
             onClick={() => createReview.mutate({ appointmentId, professionalId, rating, comment: comment || undefined })}
             disabled={createReview.isPending}
           >

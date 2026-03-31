@@ -242,7 +242,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         if (input.userId === ctx.user.id) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot chat with yourself' });
         const room = await db.getOrCreateChatRoom(ctx.user.id, input.userId);
-        return room;
+        return { roomId: room?.id || null, room };
       }),
     messages: protectedProcedure.input(z.object({ roomId: z.number(), limit: z.number().optional(), offset: z.number().optional() }))
       .query(async ({ ctx, input }) => {
@@ -442,6 +442,14 @@ export const appRouter = router({
       } catch (e) { console.warn('Status notification failed:', e); }
       return { success: true };
     }),
+    // Review moderation
+    reviews: router({
+      list: adminProcedure.query(async () => db.getAllReviews()),
+      delete: adminProcedure.input(z.object({ id: z.number() }))
+        .mutation(async ({ input }) => { await db.deleteReview(input.id); return { success: true }; }),
+    }),
+    // Payment reconciliation
+    premiumReport: adminProcedure.query(async () => db.getPremiumUsersReport()),
     // Chat monitoring
     chatRooms: adminProcedure.query(async () => {
       const rooms = await db.getAllChatRooms();

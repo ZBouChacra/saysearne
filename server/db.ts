@@ -531,16 +531,61 @@ export async function adminCreateUser(data: { email: string; name: string; role:
   return result[0].insertId;
 }
 
+export async function deleteReview(id: number) {
+  const db = await getDb(); if (!db) return;
+  const review = await db.select().from(reviews).where(eq(reviews.id, id)).limit(1);
+  if (review.length > 0) {
+    await db.delete(reviews).where(eq(reviews.id, id));
+    // Recalculate avg rating for the professional
+    const professionsList = await db.select().from(professions).where(eq(professions.userId, review[0].professionalId));
+    for (const prof of professionsList) {
+      const profReviews = await db.select({ avg: sql<number>`AVG(rating)`, count: sql<number>`COUNT(*)` })
+        .from(reviews).where(eq(reviews.professionalId, review[0].professionalId));
+      await db.update(professions).set({ avgRating: String(profReviews[0]?.avg || 0), totalReviews: profReviews[0]?.count || 0 })
+        .where(eq(professions.id, prof.id));
+    }
+  }
+}
+
+export async function getAllReviews() {
+  const db = await getDb(); if (!db) return [];
+  return db.select({
+    id: reviews.id, rating: reviews.rating, comment: reviews.comment, createdAt: reviews.createdAt,
+    reviewerId: reviews.reviewerId, professionalId: reviews.professionalId, appointmentId: reviews.appointmentId,
+    reviewerName: users.name, reviewerFirstName: users.firstName, reviewerLastName: users.lastName,
+  }).from(reviews).innerJoin(users, eq(reviews.reviewerId, users.id)).orderBy(desc(reviews.createdAt));
+}
+
+export async function getPremiumUsersReport() {
+  const db = await getDb(); if (!db) return [];
+  return db.select({
+    id: users.id, name: users.name, firstName: users.firstName, lastName: users.lastName,
+    email: users.email, isPremium: users.isPremium, isStarred: users.isStarred,
+    professionalFee: users.professionalFee, feeEnabled: users.feeEnabled,
+    profileType: users.profileType, createdAt: users.createdAt,
+  }).from(users)
+    .where(or(eq(users.isPremium, true), eq(users.isStarred, true), eq(users.feeEnabled, true)))
+    .orderBy(desc(users.createdAt));
+}
+
 export async function getAdminStats() {
   const db = await getDb(); if (!db) return { totalUsers: 0, totalProfessionals: 0, totalBookings: 0, totalReviews: 0 };
   const [usersCount] = await db.select({ count: sql<number>`count(*)` }).from(users);
   const [profsCount] = await db.select({ count: sql<number>`count(DISTINCT userId)` }).from(professions);
   const [bookingsCount] = await db.select({ count: sql<number>`count(*)` }).from(appointments);
   const [reviewsCount] = await db.select({ count: sql<number>`count(*)` }).from(reviews);
+  const [premiumCount] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.isPremium, true));
+  const [starredCount] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.isStarred, true));
+  const [feeEnabledCount] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.feeEnabled, true));
+  const [adsCount] = await db.select({ count: sql<number>`count(*)` }).from(advertisements).where(eq(advertisements.isActive, true));
   return {
     totalUsers: usersCount?.count || 0,
     totalProfessionals: profsCount?.count || 0,
     totalBookings: bookingsCount?.count || 0,
     totalReviews: reviewsCount?.count || 0,
+    totalPremium: premiumCount?.count || 0,
+    totalStarred: starredCount?.count || 0,
+    totalFeeEnabled: feeEnabledCount?.count || 0,
+    totalActiveAds: adsCount?.count || 0,
   };
 }

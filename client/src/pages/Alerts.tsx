@@ -53,7 +53,7 @@ export default function Alerts() {
         <div className="container">
           <div className="flex items-center justify-between animate-slide-up">
             <div className="flex items-center gap-4">
-              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-purple-vivid flex items-center justify-center shadow-lg shadow-primary/20">
+              <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-[#4A9B82] to-[#2D6D5F] flex items-center justify-center shadow-lg shadow-primary/20">
                 <Bell className="h-7 w-7 text-white" />
               </div>
               <div>
@@ -63,7 +63,7 @@ export default function Alerts() {
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20 px-6 h-11">
+                <Button className="gap-2 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-md shadow-primary/20 px-6 h-11">
                   <Plus className="h-4 w-4" /> {t("alerts.create")}
                 </Button>
               </DialogTrigger>
@@ -107,7 +107,7 @@ export default function Alerts() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={handleCreate} size="lg" className="w-full rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90" disabled={createMutation.isPending}>
+                  <Button onClick={handleCreate} size="lg" className="w-full rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90" disabled={createMutation.isPending}>
                     {createMutation.isPending ? t("alerts.creating") : t("alerts.create")}
                   </Button>
                 </div>

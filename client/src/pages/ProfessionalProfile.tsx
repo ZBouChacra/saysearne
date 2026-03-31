@@ -11,7 +11,7 @@ import {
   Star, Crown, Award, MapPin, Users, DollarSign, Calendar, MessageSquare,
   Loader2, Clock, Briefcase, ChevronLeft, Building2
 } from "lucide-react";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
 
 const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -27,8 +27,15 @@ export default function ProfessionalProfile() {
   const { data: profile, isLoading } = trpc.professionals.profile.useQuery({ userId });
   const { data: reviewsData } = trpc.reviews.byProfessional.useQuery({ professionalId: userId });
 
+  const [, navigate] = useLocation();
   const startChatMutation = trpc.chat.startChat.useMutation({
-    onSuccess: () => toast.success(t("profProfile.chatStarted")),
+    onSuccess: (data: any) => {
+      if (data?.roomId) {
+        navigate(`/chats?room=${data.roomId}`);
+      } else {
+        navigate('/chats');
+      }
+    },
     onError: (err) => toast.error(err.message),
   });
 
@@ -72,7 +79,7 @@ export default function ProfessionalProfile() {
               {profile.profilePhoto ? (
                 <img src={profile.profilePhoto} alt={displayName} className="object-cover h-full w-full" />
               ) : (
-                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-purple-vivid/20 text-primary font-serif text-4xl">
+                <AvatarFallback className="bg-gradient-to-br from-[#4A9B82]/20 to-[#2D6D5F]/20 text-primary font-serif text-4xl">
                   {displayName.charAt(0)}
                 </AvatarFallback>
               )}
@@ -84,7 +91,7 @@ export default function ProfessionalProfile() {
                   <h1 className="font-serif text-3xl md:text-4xl font-bold">{displayName}</h1>
                   <div className="flex items-center gap-2 mt-2">
                     {profile.isPremium && (
-                      <Badge className="gap-1.5 bg-gradient-to-r from-primary to-purple-vivid text-white rounded-full px-3 py-1">
+                      <Badge className="gap-1.5 bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] text-white rounded-full px-3 py-1">
                         <Crown className="h-3.5 w-3.5" /> {t("common.premium")}
                       </Badge>
                     )}
@@ -99,7 +106,7 @@ export default function ProfessionalProfile() {
                 {isAuthenticated && user?.id !== userId && (
                   <div className="flex gap-2.5">
                     <Link href={`/book/${userId}`}>
-                      <Button size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-primary to-purple-vivid hover:opacity-90 shadow-md shadow-primary/20 px-6">
+                      <Button size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-md shadow-primary/20 px-6">
                         <Calendar className="h-4 w-4" /> {t("profProfile.bookAppointment")}
                       </Button>
                     </Link>
@@ -211,7 +218,7 @@ export default function ProfessionalProfile() {
                         {review.reviewerPhoto ? (
                           <img src={review.reviewerPhoto} alt="" className="object-cover h-full w-full" />
                         ) : (
-                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-purple-vivid/20 text-primary text-sm font-bold">
+                          <AvatarFallback className="bg-gradient-to-br from-[#4A9B82]/20 to-[#2D6D5F]/20 text-primary text-sm font-bold">
                             {(review.reviewerFirstName || review.reviewerName || "U").charAt(0)}
                           </AvatarFallback>
                         )}
