@@ -12,9 +12,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export default function Contact() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { t } = useLanguage();
-  const [email, setEmail] = useState(user?.email || "");
+  const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [sent, setSent] = useState(false);
@@ -29,11 +29,17 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !subject || !description) {
+    const contactEmail = isAuthenticated && user?.email ? user.email : email;
+    if (!contactEmail || !subject || !description) {
       toast.error(t("contact.fillAll"));
       return;
     }
-    sendMutation.mutate({ email, subject, description });
+    sendMutation.mutate({
+      email: contactEmail,
+      subject,
+      description,
+      userId: isAuthenticated ? user?.id : undefined,
+    });
   };
 
   if (sent) {
@@ -47,7 +53,7 @@ export default function Contact() {
             </div>
             <h2 className="font-serif text-3xl font-bold mb-3">{t("contact.sentTitle")}</h2>
             <p className="text-muted-foreground text-lg mb-8">{t("contact.sentDesc")}</p>
-            <Button size="lg" className="rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 px-8" onClick={() => { setSent(false); setSubject(""); setDescription(""); }}>
+            <Button size="lg" className="rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 px-8" onClick={() => { setSent(false); setSubject(""); setDescription(""); setEmail(""); }}>
               {t("contact.sendAnother")}
             </Button>
           </div>
@@ -97,20 +103,28 @@ export default function Contact() {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-5 bg-card border border-border/60 rounded-2xl p-8 shadow-sm">
+              {/* Show email field only for anonymous users */}
+              {!isAuthenticated || !user?.email ? (
+                <div>
+                  <Label htmlFor="email" className="text-sm font-semibold">{t("contact.email")} *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    required
+                    className="mt-1.5 rounded-lg h-11"
+                  />
+                </div>
+              ) : (
+                <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg text-sm text-muted-foreground flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-primary" />
+                  {t("contact.loggedInAs") || "Sending as"}: <span className="font-medium text-foreground">{user.email}</span>
+                </div>
+              )}
               <div>
-                <Label htmlFor="email" className="text-sm font-semibold">{t("contact.email")}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  className="mt-1.5 rounded-lg h-11"
-                />
-              </div>
-              <div>
-                <Label htmlFor="subject" className="text-sm font-semibold">{t("contact.subject")}</Label>
+                <Label htmlFor="subject" className="text-sm font-semibold">{t("contact.subject")} *</Label>
                 <Input
                   id="subject"
                   value={subject}
@@ -121,7 +135,7 @@ export default function Contact() {
                 />
               </div>
               <div>
-                <Label htmlFor="description" className="text-sm font-semibold">{t("contact.message")}</Label>
+                <Label htmlFor="description" className="text-sm font-semibold">{t("contact.message")} *</Label>
                 <Textarea
                   id="description"
                   value={description}

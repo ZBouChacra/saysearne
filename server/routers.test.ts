@@ -328,3 +328,125 @@ describe("protected routes", () => {
     ).rejects.toThrow();
   });
 });
+
+// ---- Feedback Round 6: Fee Config Tests ----
+describe("admin.feeConfig", () => {
+  it("list returns array of fee configs", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.feeConfig.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("list with feeType filter returns array", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.feeConfig.list({ feeType: "premium" });
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("non-admin cannot access fee config", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.admin.feeConfig.list()).rejects.toThrow();
+  });
+});
+
+// ---- Feedback Round 6: Listing Order Config Tests ----
+describe("admin.listingOrderConfig", () => {
+  it("list returns array of listing configs", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.listingOrderConfig.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("list with configType filter returns array", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.listingOrderConfig.list({ configType: "premium" });
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("non-admin cannot access listing config", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.admin.listingOrderConfig.list()).rejects.toThrow();
+  });
+});
+
+// ---- Feedback Round 6: Payments Tests ----
+describe("admin.payments", () => {
+  it("list returns array of payment batches", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.payments.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("list with year filter returns array", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.payments.list({ year: 2026 });
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("profitData returns monthly data", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.payments.profitData({ year: 2026 });
+    expect(result).toHaveProperty("type", "monthly");
+    expect(result).toHaveProperty("data");
+    expect(Array.isArray(result.data)).toBe(true);
+  }, 30000);
+
+  it("profitData returns daily data for specific month", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.payments.profitData({ year: 2026, month: 4 });
+    expect(result).toHaveProperty("type", "daily");
+    expect(result).toHaveProperty("data");
+    expect(Array.isArray(result.data)).toBe(true);
+  }, 30000);
+
+  it("non-admin cannot access payments", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.admin.payments.list()).rejects.toThrow();
+  });
+});
+
+// ---- Feedback Round 6: Admin Reviews Tests ----
+describe("admin.reviews", () => {
+  it("list returns array of reviews for admin", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.reviews.list();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it("non-admin cannot access admin reviews", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.admin.reviews.list()).rejects.toThrow();
+  });
+});
+
+// ---- Feedback Round 6: Admin Users Search ----
+describe("admin.users search", () => {
+  it("users search by name returns results", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.users({ page: 1, limit: 10, search: "test" });
+    expect(result).toHaveProperty("results");
+    expect(result).toHaveProperty("total");
+  });
+
+  it("users filter by type returns results", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.admin.users({ page: 1, limit: 10, typeFilter: "professional" });
+    expect(result).toHaveProperty("results");
+    expect(result).toHaveProperty("total");
+  });
+});

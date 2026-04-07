@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Link, useParams, useLocation } from "wouter";
 import { toast } from "sonner";
+import { getLoginUrl } from "@/const";
 
 const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
@@ -103,22 +104,43 @@ export default function ProfessionalProfile() {
                   </div>
                 </div>
 
-                {isAuthenticated && user?.id !== userId && (
+                {user?.id !== userId && (
                   <div className="flex gap-2.5">
-                    <Link href={`/book/${userId}`}>
-                      <Button size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-md shadow-primary/20 px-6">
+                    {isAuthenticated ? (
+                      <Link href={`/book/${userId}`}>
+                        <Button size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-md shadow-primary/20 px-6">
+                          <Calendar className="h-4 w-4" /> {t("profProfile.bookAppointment")}
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        size="lg"
+                        className="gap-2.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-md shadow-primary/20 px-6"
+                        onClick={() => { window.location.href = getLoginUrl(); }}
+                      >
                         <Calendar className="h-4 w-4" /> {t("profProfile.bookAppointment")}
                       </Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="gap-2.5 rounded-full hover:bg-primary/5 hover:border-primary/40 px-6"
-                      onClick={() => startChatMutation.mutate({ userId })}
-                      disabled={startChatMutation.isPending}
-                    >
-                      <MessageSquare className="h-4 w-4" /> {t("profProfile.chat")}
-                    </Button>
+                    )}
+                    {isAuthenticated ? (
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="gap-2.5 rounded-full hover:bg-primary/5 hover:border-primary/40 px-6"
+                        onClick={() => startChatMutation.mutate({ userId })}
+                        disabled={startChatMutation.isPending}
+                      >
+                        <MessageSquare className="h-4 w-4" /> {t("profProfile.chat")}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="gap-2.5 rounded-full hover:bg-primary/5 hover:border-primary/40 px-6"
+                        onClick={() => { window.location.href = getLoginUrl(); }}
+                      >
+                        <MessageSquare className="h-4 w-4" /> {t("profProfile.chat")}
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>

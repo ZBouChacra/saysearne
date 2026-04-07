@@ -1,5 +1,5 @@
-import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { COOKIE_NAME } from "@shared/const";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
@@ -166,7 +166,6 @@ export const appRouter = router({
       const appointmentDate = new Date(input.appointmentDate);
       const durationMs = (input.duration || 60) * 60000;
       const endDate = input.endDate ? new Date(input.endDate) : new Date(appointmentDate.getTime() + durationMs);
-      // Check overlap
       const overlaps = await db.checkAppointmentOverlap(input.professionalId, appointmentDate, endDate);
       if (overlaps.length > 0) {
         throw new TRPCError({ code: 'CONFLICT', message: 'This time slot conflicts with an existing appointment. Please choose another time.' });
@@ -176,7 +175,6 @@ export const appRouter = router({
         professionId: input.professionId, serviceId: input.serviceId,
         appointmentDate, endDate, duration: input.duration || 60, description: input.description,
       });
-      // Notify the professional
       const professional = await db.getUserById(input.professionalId);
       const client = await db.getUserById(ctx.user.id);
       const clientName = client?.firstName ? `${client.firstName} ${client.lastName}` : client?.name || 'A client';
@@ -203,7 +201,6 @@ export const appRouter = router({
           hasReviewed: false,
         };
       }));
-      // Check if user has reviewed each completed appointment
       for (const appt of enriched) {
         if (appt.status === 'completed' && appt.clientId === ctx.user.id) {
           appt.hasReviewed = await db.hasReviewedAppointment(appt.id, ctx.user.id);
@@ -262,7 +259,6 @@ export const appRouter = router({
       roomId: z.number(), fileName: z.string(), fileData: z.string(),
       fileType: z.string(), type: z.enum(['image', 'video']),
     })).mutation(async ({ ctx, input }) => {
-      // Store as base64 data URL for now (in production, upload to S3)
       const dataUrl = `data:${input.fileType};base64,${input.fileData}`;
       return { url: dataUrl, fileName: input.fileName, type: input.type };
     }),
@@ -320,9 +316,9 @@ export const appRouter = router({
   contact: router({
     send: publicProcedure.input(z.object({
       email: z.string().email(), subject: z.string(), description: z.string(),
+      userId: z.number().optional(),
     })).mutation(async ({ ctx, input }) => {
-      const id = await db.createContactMessage({ ...input, userId: ctx.user?.id });
-      // Notify admin via email
+      const id = await db.createContactMessage({ ...input, userId: input.userId || ctx.user?.id });
       try {
         await notifyOwner({ title: `New Contact: ${input.subject}`, content: `From: ${input.email}\n\n${input.description}` });
       } catch (e) { console.warn('Contact notification failed:', e); }
@@ -342,8 +338,10 @@ export const appRouter = router({
   // Admin
   admin: router({
     stats: adminProcedure.query(async () => db.getAdminStats()),
-    users: adminProcedure.input(z.object({ page: z.number().optional(), limit: z.number().optional() }))
-      .query(async ({ input }) => db.getAllUsers(input.page || 1, input.limit || 20)),
+    users: adminProcedure.input(z.object({
+      page: z.number().optional(), limit: z.number().optional(),
+      search: z.string().optional(), typeFilter: z.string().optional(),
+    })).query(async ({ input }) => db.getAllUsers(input.page || 1, input.limit || 20, input.search, input.typeFilter)),
     userDetail: adminProcedure.input(z.object({ userId: z.number() }))
       .query(async ({ input }) => {
         const user = await db.getUserById(input.userId);
@@ -361,7 +359,8 @@ export const appRouter = router({
           };
         }));
         const appts = await db.getAppointmentsByUser(input.userId);
-        return { ...user, professions: profsWithDetails, appointments: appts };
+        const batches = await db.getPremiumBatchesByUser(input.userId);
+        return { ...user, professions: profsWithDetails, appointments: appts, premiumBatches: batches };
       }),
     toggleLock: adminProcedure.input(z.object({ userId: z.number(), isLocked: z.boolean() }))
       .mutation(async ({ input }) => { await db.toggleUserLock(input.userId, input.isLocked); return { success: true }; }),
@@ -377,8 +376,15 @@ export const appRouter = router({
       email: z.string().email(), name: z.string(),
       role: z.enum(['user', 'admin']), profileType: z.enum(['customer', 'professional']),
     })).mutation(async ({ input }) => {
-      const id = await db.adminCreateUser(input);
-      return { id };
+      try {
+        const id = await db.adminCreateUser(input);
+        return { id };
+      } catch (e: any) {
+        if (e.message === 'DUPLICATE_EMAIL') {
+          throw new TRPCError({ code: 'CONFLICT', message: 'A user with this email already exists' });
+        }
+        throw e;
+      }
     }),
     // Categories & Services management
     categories: router({
@@ -410,11 +416,12 @@ export const appRouter = router({
       create: adminProcedure.input(z.object({
         title: z.string(), imageUrl: z.string(), linkUrl: z.string().optional(),
         position: z.enum(['home_banner', 'search_banner', 'sidebar']), isActive: z.boolean().optional(),
+        country: z.string().optional(), city: z.string().optional(),
       })).mutation(async ({ input }) => { const id = await db.createAd(input); return { id }; }),
       update: adminProcedure.input(z.object({
         id: z.number(), title: z.string().optional(), imageUrl: z.string().optional(),
         linkUrl: z.string().optional(), position: z.enum(['home_banner', 'search_banner', 'sidebar']).optional(),
-        isActive: z.boolean().optional(),
+        isActive: z.boolean().optional(), country: z.string().optional(), city: z.string().optional(),
       })).mutation(async ({ input }) => { const { id, ...data } = input; await db.updateAd(id, data); return { success: true }; }),
       delete: adminProcedure.input(z.object({ id: z.number() }))
         .mutation(async ({ input }) => { await db.deleteAd(input.id); return { success: true }; }),
@@ -432,7 +439,6 @@ export const appRouter = router({
       if (input.adminReply) { updateData.adminReply = input.adminReply; updateData.repliedAt = new Date(); }
       updateData.isRead = true;
       await db.updateContactMessage(input.id, updateData);
-      // Send notification about status change
       try {
         const statusText = input.status === 'in_progress' ? 'In Progress' : input.status === 'closed' ? 'Closed' : 'Pending';
         await notifyOwner({
@@ -484,6 +490,160 @@ export const appRouter = router({
         }),
       set: adminProcedure.input(z.object({ key: z.string(), value: z.string() }))
         .mutation(async ({ input }) => { await db.setSiteConfig(input.key, input.value); return { success: true }; }),
+    }),
+    // Fee Config
+    feeConfig: router({
+      list: adminProcedure.input(z.object({ feeType: z.string().optional() }).optional())
+        .query(async ({ input }) => db.getFeeConfigs(input?.feeType)),
+      getFee: adminProcedure.input(z.object({ feeType: z.string(), country: z.string().optional() }))
+        .query(async ({ input }) => db.getFeeForCountry(input.feeType, input.country)),
+      upsert: adminProcedure.input(z.object({
+        feeType: z.enum(['premium', 'advertisement']),
+        country: z.string().nullable(),
+        feePerDay: z.string(),
+      })).mutation(async ({ input }) => {
+        await db.upsertFeeConfig(input.feeType, input.country, input.feePerDay);
+        return { success: true };
+      }),
+      delete: adminProcedure.input(z.object({ id: z.number() }))
+        .mutation(async ({ input }) => { await db.deleteFeeConfig(input.id); return { success: true }; }),
+    }),
+    // Listing Order Config
+    listingOrderConfig: router({
+      list: adminProcedure.input(z.object({ configType: z.string().optional() }).optional())
+        .query(async ({ input }) => db.getListingOrderConfigs(input?.configType)),
+      getCount: adminProcedure.input(z.object({ configType: z.string(), country: z.string().optional() }))
+        .query(async ({ input }) => db.getListingOrderForCountry(input.configType, input.country)),
+      upsert: adminProcedure.input(z.object({
+        configType: z.enum(['premium', 'advertisement']),
+        country: z.string().nullable(),
+        maxCount: z.number(),
+      })).mutation(async ({ input }) => {
+        await db.upsertListingOrderConfig(input.configType, input.country, input.maxCount);
+        return { success: true };
+      }),
+      delete: adminProcedure.input(z.object({ id: z.number() }))
+        .mutation(async ({ input }) => { await db.deleteListingOrderConfig(input.id); return { success: true }; }),
+    }),
+    // Premium Batches
+    premiumBatches: router({
+      create: adminProcedure.input(z.object({
+        userId: z.number(), country: z.string().optional(),
+        startDate: z.string(), endDate: z.string(),
+        feePerDay: z.string(), totalDays: z.number(), totalAmount: z.string(),
+        notes: z.string().optional(),
+      })).mutation(async ({ input }) => {
+        const id = await db.createPremiumBatch({
+          ...input, startDate: new Date(input.startDate), endDate: new Date(input.endDate),
+        });
+        return { id };
+      }),
+      byUser: adminProcedure.input(z.object({ userId: z.number() }))
+        .query(async ({ input }) => db.getPremiumBatchesByUser(input.userId)),
+      all: adminProcedure.query(async () => db.getAllPremiumBatches()),
+      updateStatus: adminProcedure.input(z.object({
+        id: z.number(), status: z.enum(['pending', 'paid', 'active', 'cancelled', 'expired']),
+      })).mutation(async ({ input }) => {
+        const updateData: any = { status: input.status };
+        if (input.status === 'paid') updateData.paidAt = new Date();
+        await db.updatePremiumBatch(input.id, updateData);
+        // If paid, set user as premium
+        if (input.status === 'paid') {
+          const batch = await db.getPremiumBatchById(input.id);
+          if (batch) await db.toggleUserPremium(batch.userId, true);
+        }
+        return { success: true };
+      }),
+      countForDate: adminProcedure.input(z.object({ date: z.string(), country: z.string().optional() }))
+        .query(async ({ input }) => db.countPremiumBatchesForDate(new Date(input.date), input.country)),
+    }),
+    // Ad Batches
+    adBatches: router({
+      create: adminProcedure.input(z.object({
+        advertisementId: z.number(), country: z.string().optional(),
+        startDate: z.string(), endDate: z.string(),
+        feePerDay: z.string(), totalDays: z.number(), totalAmount: z.string(),
+        notes: z.string().optional(),
+      })).mutation(async ({ input }) => {
+        const id = await db.createAdBatch({
+          ...input, startDate: new Date(input.startDate), endDate: new Date(input.endDate),
+        });
+        return { id };
+      }),
+      byAd: adminProcedure.input(z.object({ advertisementId: z.number() }))
+        .query(async ({ input }) => db.getAdBatchesByAd(input.advertisementId)),
+      all: adminProcedure.query(async () => db.getAllAdBatches()),
+      updateStatus: adminProcedure.input(z.object({
+        id: z.number(), status: z.enum(['pending', 'paid', 'active', 'cancelled', 'expired']),
+      })).mutation(async ({ input }) => {
+        const updateData: any = { status: input.status };
+        if (input.status === 'paid') updateData.paidAt = new Date();
+        await db.updateAdBatch(input.id, updateData);
+        // If paid, activate the ad
+        if (input.status === 'paid') {
+          const batch = await db.getAdBatchById(input.id);
+          if (batch) await db.updateAd(batch.advertisementId, { isActive: true });
+        }
+        return { success: true };
+      }),
+      countForDate: adminProcedure.input(z.object({ date: z.string(), country: z.string().optional() }))
+        .query(async ({ input }) => db.countAdBatchesForDate(new Date(input.date), input.country)),
+    }),
+    // Payments
+    payments: router({
+      list: adminProcedure.input(z.object({
+        year: z.number().optional(), month: z.number().optional(),
+      }).optional()).query(async ({ input }) => {
+        const data = await db.getAllBatchesForPayments(input?.year, input?.month);
+        // Enrich premium batches with user info
+        const enrichedPremium = await Promise.all(data.premiumBatches.map(async (b) => {
+          const user = await db.getUserById(b.userId);
+          return {
+            ...b, type: 'premium' as const,
+            userName: user?.firstName ? `${user.firstName} ${user.lastName}` : user?.name,
+            userEmail: user?.email,
+          };
+        }));
+        // Enrich ad batches with ad info
+        const enrichedAd = await Promise.all(data.adBatches.map(async (b) => {
+          const ads = await db.getAllAds();
+          const ad = ads.find(a => a.id === b.advertisementId);
+          return {
+            ...b, type: 'advertisement' as const,
+            adTitle: ad?.title || `Ad #${b.advertisementId}`,
+          };
+        }));
+        // Sort: pending first, then by start date
+        const all = [...enrichedPremium, ...enrichedAd].sort((a, b) => {
+          const statusOrder: any = { pending: 0, paid: 1, active: 2, expired: 3, cancelled: 4 };
+          const sa = statusOrder[a.status] ?? 5;
+          const sb = statusOrder[b.status] ?? 5;
+          if (sa !== sb) return sa - sb;
+          return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        });
+        return all;
+      }),
+      profitData: adminProcedure.input(z.object({
+        year: z.number(), month: z.number().optional(),
+      })).query(async ({ input }) => {
+        if (input.month) {
+          return { type: 'daily' as const, data: await db.getDailyProfitData(input.year, input.month) };
+        }
+        return { type: 'monthly' as const, data: await db.getMonthlyProfitData(input.year) };
+      }),
+    }),
+    // Send message to user (from admin reviews)
+    sendMessage: adminProcedure.input(z.object({
+      userId: z.number(), message: z.string(),
+    })).mutation(async ({ ctx, input }) => {
+      // Create or get chat room between admin and user
+      const room = await db.getOrCreateChatRoom(ctx.user.id, input.userId);
+      if (!room) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create chat room' });
+      await db.sendChatMessage({
+        roomId: room.id, senderId: ctx.user.id,
+        content: input.message, messageType: 'text',
+      });
+      return { success: true, roomId: room.id };
     }),
   }),
 });

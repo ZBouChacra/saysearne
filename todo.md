@@ -145,3 +145,30 @@
 - [x] 7. Admin: check premium user payment status, ad payments, reconciliation report
 - [x] 8. Change logo to uploaded Phoenician ship emblem
 - [ ] 9. Mobile version guidance (iOS and Android via Capacitor) - requires native toolchain
+
+## Feedback Round 6 (25 Items)
+- [x] 1. Anonymous user: show Chat & Book Appointment buttons, redirect to login on click
+- [x] 2. Professional listing: order by premium first, then starred, then by customer city/country
+- [x] 3. Advertisement listing: order by customer city then country
+- [x] 4. Contact Us: hide email if logged in (link message to user); show & require email if anonymous
+- [x] 5. Admin/Config: default fee for premium users and ads (per day, USD); country-specific exceptions
+- [x] 6. Admin/Config: default listing order count for premium and ads; country-specific exceptions
+- [x] 7. Admin/Dashboard: daily and monthly profit diagrams
+- [x] 8. Admin/Users: searchable dropdown for Type, plus search by first name, last name, email
+- [x] 9. Admin/Users: reject duplicate emails
+- [x] 10. Admin/Users: when setting premium, fetch default fee from Config (editable), set duration via calendar (start >= today)
+- [x] 11. Admin/Users: disable calendar days when premium count equals listing order count for country
+- [x] 12. Admin/Users: calculate total charge for premium batch; one-to-many batches with batch ID
+- [x] 13. Admin/Users: premium batch starts as Pending; set Paid from Admin/Payments; auto-cancel if unpaid at start
+- [x] 14. Admin/Advertisements: search by ad title
+- [x] 15. Admin/Advertisements: ability to edit any ad
+- [x] 16. Admin/Advertisements: set city and country when configuring an ad
+- [x] 17. Admin/Advertisements: set duration via calendar with default fee from Config (editable), start >= today
+- [x] 18. Admin/Advertisements: disable calendar days when ad count equals listing order count for country
+- [x] 19. Admin/Advertisements: calculate total charge for ad batch; one-to-many batches with batch ID
+- [x] 20. Admin/Advertisements: ad batch starts as Pending; set Paid from Admin/Payments; auto-cancel if unpaid at start
+- [x] 21. Admin/Payments: track premium and ad payments; show near-due and pending batches first
+- [x] 22. Admin/Payments: filter by year/month; export to CSV
+- [x] 23. Admin/Reviews: include professional name, country, city; search by Review ID, Customer, Professional
+- [x] 24. Admin/Reviews: ability to send message to user directly
+- [x] 25. Fix: Chat room redirect shows error - chat_messages insert fails with params roomId, senderId (missing latitude/longitude columns)

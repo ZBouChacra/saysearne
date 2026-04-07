@@ -156,6 +156,8 @@ export const advertisements = mysqlTable("advertisements", {
   imageUrl: text("imageUrl").notNull(),
   linkUrl: text("linkUrl"),
   position: mysqlEnum("position", ["home_banner", "search_banner", "sidebar"]).default("home_banner").notNull(),
+  country: varchar("country", { length: 100 }),
+  city: varchar("city", { length: 100 }),
   isActive: boolean("isActive").default(true).notNull(),
   startDate: timestamp("startDate"),
   endDate: timestamp("endDate"),
@@ -182,6 +184,61 @@ export const siteConfig = mysqlTable("site_config", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+// Fee configuration: default fees and country-specific exceptions
+export const feeConfig = mysqlTable("fee_config", {
+  id: int("id").autoincrement().primaryKey(),
+  feeType: mysqlEnum("feeType", ["premium", "advertisement"]).notNull(),
+  country: varchar("country", { length: 100 }), // null = default, non-null = country-specific exception
+  feePerDay: decimal("feePerDay", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Listing order count configuration: max premium/ad slots per day
+export const listingOrderConfig = mysqlTable("listing_order_config", {
+  id: int("id").autoincrement().primaryKey(),
+  configType: mysqlEnum("configType", ["premium", "advertisement"]).notNull(),
+  country: varchar("country", { length: 100 }), // null = default, non-null = country-specific exception
+  maxCount: int("maxCount").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Premium batches: tracks premium subscription periods for users
+export const premiumBatches = mysqlTable("premium_batches", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  country: varchar("country", { length: 100 }),
+  startDate: timestamp("startDate").notNull(),
+  endDate: timestamp("endDate").notNull(),
+  feePerDay: decimal("feePerDay", { precision: 10, scale: 2 }).notNull(),
+  totalDays: int("totalDays").notNull(),
+  totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["pending", "paid", "active", "cancelled", "expired"]).default("pending").notNull(),
+  paidAt: timestamp("paidAt"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Ad batches: tracks advertisement activation periods
+export const adBatches = mysqlTable("ad_batches", {
+  id: int("id").autoincrement().primaryKey(),
+  advertisementId: int("advertisementId").notNull(),
+  country: varchar("country", { length: 100 }),
+  startDate: timestamp("startDate").notNull(),
+  endDate: timestamp("endDate").notNull(),
+  feePerDay: decimal("feePerDay", { precision: 10, scale: 2 }).notNull(),
+  totalDays: int("totalDays").notNull(),
+  totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["pending", "paid", "active", "cancelled", "expired"]).default("pending").notNull(),
+  paidAt: timestamp("paidAt"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Category = typeof categories.$inferSelect;
@@ -195,3 +252,7 @@ export type Alert = typeof alerts.$inferSelect;
 export type Advertisement = typeof advertisements.$inferSelect;
 export type ContactMessage = typeof contactMessages.$inferSelect;
 export type SiteConfig = typeof siteConfig.$inferSelect;
+export type FeeConfig = typeof feeConfig.$inferSelect;
+export type ListingOrderConfig = typeof listingOrderConfig.$inferSelect;
+export type PremiumBatch = typeof premiumBatches.$inferSelect;
+export type AdBatch = typeof adBatches.$inferSelect;

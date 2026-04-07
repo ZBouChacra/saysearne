@@ -3,7 +3,8 @@ import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser, users, categories, services, professions, professionImages,
   appointments, availability, chatRooms, chatMessages, reviews, alerts,
-  advertisements, contactMessages, siteConfig
+  advertisements, contactMessages, siteConfig, feeConfig, listingOrderConfig,
+  premiumBatches, adBatches
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -45,6 +46,12 @@ export async function getUserByOpenId(openId: string) {
 export async function getUserById(id: number) {
   const db = await getDb(); if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb(); if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -159,7 +166,7 @@ export async function getTopProfessionals(limit = 5) {
   }).from(professions)
     .innerJoin(users, eq(professions.userId, users.id))
     .where(and(eq(professions.isLocked, false), eq(users.isLocked, false), eq(users.profileType, 'professional')))
-    .orderBy(desc(users.isStarred), desc(users.isPremium), desc(professions.avgRating), desc(professions.yearsOfExperience))
+    .orderBy(desc(users.isPremium), desc(users.isStarred), desc(professions.avgRating), desc(professions.yearsOfExperience))
     .limit(limit);
 }
 
@@ -186,16 +193,8 @@ export async function searchProfessionals(filters: any) {
   const page = filters.page || 1;
   const limit = filters.limit || 20;
   const offset = (page - 1) * limit;
-  let orderClause;
-  const sortOrder = filters.sortOrder === 'asc' ? asc : desc;
-  switch (filters.sortBy) {
-    case 'age': orderClause = sortOrder(users.dateOfBirth); break;
-    case 'stars': orderClause = sortOrder(professions.avgRating); break;
-    case 'cost': orderClause = sortOrder(professions.costPerHour); break;
-    case 'experience': orderClause = sortOrder(professions.yearsOfExperience); break;
-    default: orderClause = desc(professions.avgRating);
-  }
 
+  // Order: premium first, then starred, then by customer city/country proximity, then rating
   const results = await db.select({
     userId: professions.userId, professionId: professions.id, categoryId: professions.categoryId,
     serviceId: professions.serviceId, costPerHour: professions.costPerHour, yearsOfExperience: professions.yearsOfExperience,
@@ -209,7 +208,7 @@ export async function searchProfessionals(filters: any) {
   }).from(professions)
     .innerJoin(users, eq(professions.userId, users.id))
     .where(and(...conditions))
-    .orderBy(orderClause)
+    .orderBy(desc(users.isPremium), desc(users.isStarred), desc(professions.avgRating))
     .limit(limit).offset(offset);
 
   const countResult = await db.select({ count: sql<number>`count(*)` }).from(professions)
@@ -226,7 +225,7 @@ export async function createAppointment(data: any) {
 
 export async function checkAppointmentOverlap(professionalId: number, appointmentDate: Date, endDate?: Date) {
   const db = await getDb(); if (!db) return [];
-  const end = endDate || new Date(appointmentDate.getTime() + 60 * 60 * 1000); // default 1 hour
+  const end = endDate || new Date(appointmentDate.getTime() + 60 * 60 * 1000);
   return db.select().from(appointments)
     .where(and(
       eq(appointments.professionalId, professionalId),
@@ -340,7 +339,17 @@ export async function getChatMessages(roomId: number, limit = 50, offset = 0) {
 
 export async function sendChatMessage(data: { roomId: number; senderId: number; content?: string; messageType?: string; mediaUrl?: string; latitude?: string; longitude?: string }) {
   const db = await getDb(); if (!db) return null;
-  const result = await db.insert(chatMessages).values(data as any);
+  // Build insert values explicitly to avoid sending undefined for columns with defaults
+  const insertValues: any = {
+    roomId: data.roomId,
+    senderId: data.senderId,
+    messageType: data.messageType || 'text',
+  };
+  if (data.content !== undefined && data.content !== null) insertValues.content = data.content;
+  if (data.mediaUrl !== undefined && data.mediaUrl !== null) insertValues.mediaUrl = data.mediaUrl;
+  if (data.latitude !== undefined && data.latitude !== null) insertValues.latitude = data.latitude;
+  if (data.longitude !== undefined && data.longitude !== null) insertValues.longitude = data.longitude;
+  const result = await db.insert(chatMessages).values(insertValues);
   await db.update(chatRooms).set({ lastMessageAt: new Date() }).where(eq(chatRooms.id, data.roomId));
   return result[0].insertId;
 }
@@ -367,7 +376,6 @@ export async function getUnreadCount(userId: number) {
 export async function createReview(data: { appointmentId: number; reviewerId: number; professionalId: number; professionId?: number; rating: number; comment?: string }) {
   const db = await getDb(); if (!db) return null;
   const result = await db.insert(reviews).values(data);
-  // Update avg rating for all professions of this professional
   const professionsList = await db.select().from(professions).where(eq(professions.userId, data.professionalId));
   for (const prof of professionsList) {
     const profReviews = await db.select({ avg: sql<number>`AVG(rating)`, count: sql<number>`COUNT(*)` })
@@ -421,9 +429,17 @@ export async function deleteAlert(id: number) {
 // Advertisements
 export async function getActiveAds(position?: string) {
   const db = await getDb(); if (!db) return [];
+  const now = new Date();
+  // Get ads that are active and within their date range (if set)
   const conditions: any[] = [eq(advertisements.isActive, true)];
   if (position) conditions.push(eq(advertisements.position, position as any));
-  return db.select().from(advertisements).where(and(...conditions));
+  const allAds = await db.select().from(advertisements).where(and(...conditions));
+  // Filter by date range if set
+  return allAds.filter(ad => {
+    if (ad.startDate && new Date(ad.startDate) > now) return false;
+    if (ad.endDate && new Date(ad.endDate) < now) return false;
+    return true;
+  });
 }
 
 export async function createAd(data: any) {
@@ -490,12 +506,212 @@ export async function setSiteConfig(key: string, value: string) {
   }
 }
 
+// Fee Config
+export async function getFeeConfigs(feeType?: string) {
+  const db = await getDb(); if (!db) return [];
+  if (feeType) return db.select().from(feeConfig).where(eq(feeConfig.feeType, feeType as any)).orderBy(asc(feeConfig.country));
+  return db.select().from(feeConfig).orderBy(asc(feeConfig.feeType), asc(feeConfig.country));
+}
+
+export async function getFeeForCountry(feeType: string, country?: string): Promise<string> {
+  const db = await getDb(); if (!db) return '0';
+  // Try country-specific first
+  if (country) {
+    const specific = await db.select().from(feeConfig)
+      .where(and(eq(feeConfig.feeType, feeType as any), eq(feeConfig.country, country))).limit(1);
+    if (specific.length > 0) return String(specific[0].feePerDay);
+  }
+  // Fall back to default (country is null)
+  const defaultFee = await db.select().from(feeConfig)
+    .where(and(eq(feeConfig.feeType, feeType as any), sql`${feeConfig.country} IS NULL`)).limit(1);
+  return defaultFee.length > 0 ? String(defaultFee[0].feePerDay) : '0';
+}
+
+export async function upsertFeeConfig(feeType: string, country: string | null, feePerDay: string) {
+  const db = await getDb(); if (!db) return;
+  const conditions = country
+    ? and(eq(feeConfig.feeType, feeType as any), eq(feeConfig.country, country))
+    : and(eq(feeConfig.feeType, feeType as any), sql`${feeConfig.country} IS NULL`);
+  const existing = await db.select().from(feeConfig).where(conditions).limit(1);
+  if (existing.length > 0) {
+    await db.update(feeConfig).set({ feePerDay }).where(eq(feeConfig.id, existing[0].id));
+  } else {
+    await db.insert(feeConfig).values({ feeType: feeType as any, country, feePerDay } as any);
+  }
+}
+
+export async function deleteFeeConfig(id: number) {
+  const db = await getDb(); if (!db) return;
+  await db.delete(feeConfig).where(eq(feeConfig.id, id));
+}
+
+// Listing Order Config
+export async function getListingOrderConfigs(configType?: string) {
+  const db = await getDb(); if (!db) return [];
+  if (configType) return db.select().from(listingOrderConfig).where(eq(listingOrderConfig.configType, configType as any)).orderBy(asc(listingOrderConfig.country));
+  return db.select().from(listingOrderConfig).orderBy(asc(listingOrderConfig.configType), asc(listingOrderConfig.country));
+}
+
+export async function getListingOrderForCountry(configType: string, country?: string): Promise<number> {
+  const db = await getDb(); if (!db) return 999;
+  if (country) {
+    const specific = await db.select().from(listingOrderConfig)
+      .where(and(eq(listingOrderConfig.configType, configType as any), eq(listingOrderConfig.country, country))).limit(1);
+    if (specific.length > 0) return specific[0].maxCount;
+  }
+  const defaultConfig = await db.select().from(listingOrderConfig)
+    .where(and(eq(listingOrderConfig.configType, configType as any), sql`${listingOrderConfig.country} IS NULL`)).limit(1);
+  return defaultConfig.length > 0 ? defaultConfig[0].maxCount : 999;
+}
+
+export async function upsertListingOrderConfig(configType: string, country: string | null, maxCount: number) {
+  const db = await getDb(); if (!db) return;
+  const conditions = country
+    ? and(eq(listingOrderConfig.configType, configType as any), eq(listingOrderConfig.country, country))
+    : and(eq(listingOrderConfig.configType, configType as any), sql`${listingOrderConfig.country} IS NULL`);
+  const existing = await db.select().from(listingOrderConfig).where(conditions).limit(1);
+  if (existing.length > 0) {
+    await db.update(listingOrderConfig).set({ maxCount }).where(eq(listingOrderConfig.id, existing[0].id));
+  } else {
+    await db.insert(listingOrderConfig).values({ configType: configType as any, country, maxCount } as any);
+  }
+}
+
+export async function deleteListingOrderConfig(id: number) {
+  const db = await getDb(); if (!db) return;
+  await db.delete(listingOrderConfig).where(eq(listingOrderConfig.id, id));
+}
+
+// Premium Batches
+export async function createPremiumBatch(data: { userId: number; country?: string; startDate: Date; endDate: Date; feePerDay: string; totalDays: number; totalAmount: string; notes?: string }) {
+  const db = await getDb(); if (!db) return null;
+  const result = await db.insert(premiumBatches).values(data as any);
+  return result[0].insertId;
+}
+
+export async function getPremiumBatchesByUser(userId: number) {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(premiumBatches).where(eq(premiumBatches.userId, userId)).orderBy(desc(premiumBatches.createdAt));
+}
+
+export async function getAllPremiumBatches() {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(premiumBatches).orderBy(desc(premiumBatches.createdAt));
+}
+
+export async function updatePremiumBatch(id: number, data: any) {
+  const db = await getDb(); if (!db) return;
+  await db.update(premiumBatches).set(data).where(eq(premiumBatches.id, id));
+}
+
+export async function getPremiumBatchById(id: number) {
+  const db = await getDb(); if (!db) return undefined;
+  const result = await db.select().from(premiumBatches).where(eq(premiumBatches.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Count active/pending premium batches for a given date and country
+export async function countPremiumBatchesForDate(date: Date, country?: string) {
+  const db = await getDb(); if (!db) return 0;
+  const conditions: any[] = [
+    or(eq(premiumBatches.status, 'pending'), eq(premiumBatches.status, 'paid'), eq(premiumBatches.status, 'active')),
+    lte(premiumBatches.startDate, date),
+    gte(premiumBatches.endDate, date),
+  ];
+  if (country) conditions.push(eq(premiumBatches.country, country));
+  const result = await db.select({ count: sql<number>`count(*)` }).from(premiumBatches).where(and(...conditions));
+  return result[0]?.count || 0;
+}
+
+// Ad Batches
+export async function createAdBatch(data: { advertisementId: number; country?: string; startDate: Date; endDate: Date; feePerDay: string; totalDays: number; totalAmount: string; notes?: string }) {
+  const db = await getDb(); if (!db) return null;
+  const result = await db.insert(adBatches).values(data as any);
+  return result[0].insertId;
+}
+
+export async function getAdBatchesByAd(advertisementId: number) {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(adBatches).where(eq(adBatches.advertisementId, advertisementId)).orderBy(desc(adBatches.createdAt));
+}
+
+export async function getAllAdBatches() {
+  const db = await getDb(); if (!db) return [];
+  return db.select().from(adBatches).orderBy(desc(adBatches.createdAt));
+}
+
+export async function updateAdBatch(id: number, data: any) {
+  const db = await getDb(); if (!db) return;
+  await db.update(adBatches).set(data).where(eq(adBatches.id, id));
+}
+
+export async function getAdBatchById(id: number) {
+  const db = await getDb(); if (!db) return undefined;
+  const result = await db.select().from(adBatches).where(eq(adBatches.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function countAdBatchesForDate(date: Date, country?: string) {
+  const db = await getDb(); if (!db) return 0;
+  const conditions: any[] = [
+    or(eq(adBatches.status, 'pending'), eq(adBatches.status, 'paid'), eq(adBatches.status, 'active')),
+    lte(adBatches.startDate, date),
+    gte(adBatches.endDate, date),
+  ];
+  if (country) conditions.push(eq(adBatches.country, country));
+  const result = await db.select({ count: sql<number>`count(*)` }).from(adBatches).where(and(...conditions));
+  return result[0]?.count || 0;
+}
+
+// Get all batches (premium + ad) for payments view
+export async function getAllBatchesForPayments(year?: number, month?: number) {
+  const db = await getDb(); if (!db) return { premiumBatches: [], adBatches: [] };
+
+  let premConditions: any[] = [];
+  let adConditions: any[] = [];
+
+  if (year && month) {
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59);
+    premConditions.push(gte(premiumBatches.startDate, startOfMonth));
+    premConditions.push(lte(premiumBatches.startDate, endOfMonth));
+    adConditions.push(gte(adBatches.startDate, startOfMonth));
+    adConditions.push(lte(adBatches.startDate, endOfMonth));
+  }
+
+  const premResults = premConditions.length > 0
+    ? await db.select().from(premiumBatches).where(and(...premConditions)).orderBy(asc(premiumBatches.startDate))
+    : await db.select().from(premiumBatches).orderBy(asc(premiumBatches.startDate));
+
+  const adResults = adConditions.length > 0
+    ? await db.select().from(adBatches).where(and(...adConditions)).orderBy(asc(adBatches.startDate))
+    : await db.select().from(adBatches).orderBy(asc(adBatches.startDate));
+
+  return { premiumBatches: premResults, adBatches: adResults };
+}
+
 // Admin
-export async function getAllUsers(page = 1, limit = 20) {
+export async function getAllUsers(page = 1, limit = 20, search?: string, typeFilter?: string) {
   const db = await getDb(); if (!db) return { results: [], total: 0 };
   const offset = (page - 1) * limit;
-  const results = await db.select().from(users).orderBy(desc(users.createdAt)).limit(limit).offset(offset);
-  const countResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+  const conditions: any[] = [];
+  if (search) {
+    conditions.push(or(
+      like(users.firstName, `%${search}%`),
+      like(users.lastName, `%${search}%`),
+      like(users.email, `%${search}%`)
+    ));
+  }
+  if (typeFilter && typeFilter !== 'all') {
+    conditions.push(eq(users.profileType, typeFilter as any));
+  }
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  const results = whereClause
+    ? await db.select().from(users).where(whereClause).orderBy(desc(users.createdAt)).limit(limit).offset(offset)
+    : await db.select().from(users).orderBy(desc(users.createdAt)).limit(limit).offset(offset);
+  const countResult = whereClause
+    ? await db.select({ count: sql<number>`count(*)` }).from(users).where(whereClause)
+    : await db.select({ count: sql<number>`count(*)` }).from(users);
   return { results, total: countResult[0]?.count || 0 };
 }
 
@@ -526,6 +742,9 @@ export async function updateUserFee(userId: number, fee: string, enabled: boolea
 
 export async function adminCreateUser(data: { email: string; name: string; role: 'user' | 'admin'; profileType: 'customer' | 'professional' }) {
   const db = await getDb(); if (!db) return null;
+  // Check for duplicate email
+  const existing = await db.select().from(users).where(eq(users.email, data.email)).limit(1);
+  if (existing.length > 0) throw new Error('DUPLICATE_EMAIL');
   const openId = `admin-created-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const result = await db.insert(users).values({ openId, name: data.name, email: data.email, role: data.role, profileType: data.profileType, lastSignedIn: new Date() });
   return result[0].insertId;
@@ -536,7 +755,6 @@ export async function deleteReview(id: number) {
   const review = await db.select().from(reviews).where(eq(reviews.id, id)).limit(1);
   if (review.length > 0) {
     await db.delete(reviews).where(eq(reviews.id, id));
-    // Recalculate avg rating for the professional
     const professionsList = await db.select().from(professions).where(eq(professions.userId, review[0].professionalId));
     for (const prof of professionsList) {
       const profReviews = await db.select({ avg: sql<number>`AVG(rating)`, count: sql<number>`COUNT(*)` })
@@ -549,11 +767,26 @@ export async function deleteReview(id: number) {
 
 export async function getAllReviews() {
   const db = await getDb(); if (!db) return [];
-  return db.select({
+  // Join with reviewer and professional user data, plus profession data for country/city
+  const result = await db.select({
     id: reviews.id, rating: reviews.rating, comment: reviews.comment, createdAt: reviews.createdAt,
     reviewerId: reviews.reviewerId, professionalId: reviews.professionalId, appointmentId: reviews.appointmentId,
+    professionId: reviews.professionId,
     reviewerName: users.name, reviewerFirstName: users.firstName, reviewerLastName: users.lastName,
   }).from(reviews).innerJoin(users, eq(reviews.reviewerId, users.id)).orderBy(desc(reviews.createdAt));
+
+  // Enrich with professional name and country/city
+  const enriched = await Promise.all(result.map(async (r) => {
+    const professional = await getUserById(r.professionalId);
+    const profession = r.professionId ? await getProfessionById(r.professionId) : null;
+    return {
+      ...r,
+      professionalName: professional?.firstName ? `${professional.firstName} ${professional.lastName}` : professional?.name,
+      professionalCountry: profession?.country || professional?.country,
+      professionalCity: profession?.city,
+    };
+  }));
+  return enriched;
 }
 
 export async function getPremiumUsersReport() {
@@ -578,6 +811,17 @@ export async function getAdminStats() {
   const [starredCount] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.isStarred, true));
   const [feeEnabledCount] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.feeEnabled, true));
   const [adsCount] = await db.select({ count: sql<number>`count(*)` }).from(advertisements).where(eq(advertisements.isActive, true));
+
+  // Profit stats
+  const [premiumBatchTotal] = await db.select({ total: sql<number>`COALESCE(SUM(totalAmount), 0)` })
+    .from(premiumBatches).where(eq(premiumBatches.status, 'paid'));
+  const [adBatchTotal] = await db.select({ total: sql<number>`COALESCE(SUM(totalAmount), 0)` })
+    .from(adBatches).where(eq(adBatches.status, 'paid'));
+  const [pendingPremium] = await db.select({ total: sql<number>`COALESCE(SUM(totalAmount), 0)` })
+    .from(premiumBatches).where(eq(premiumBatches.status, 'pending'));
+  const [pendingAd] = await db.select({ total: sql<number>`COALESCE(SUM(totalAmount), 0)` })
+    .from(adBatches).where(eq(adBatches.status, 'pending'));
+
   return {
     totalUsers: usersCount?.count || 0,
     totalProfessionals: profsCount?.count || 0,
@@ -587,5 +831,55 @@ export async function getAdminStats() {
     totalStarred: starredCount?.count || 0,
     totalFeeEnabled: feeEnabledCount?.count || 0,
     totalActiveAds: adsCount?.count || 0,
+    totalPremiumRevenue: premiumBatchTotal?.total || 0,
+    totalAdRevenue: adBatchTotal?.total || 0,
+    pendingPremiumAmount: pendingPremium?.total || 0,
+    pendingAdAmount: pendingAd?.total || 0,
   };
+}
+
+// Profit data for charts
+export async function getMonthlyProfitData(year: number) {
+  const db = await getDb(); if (!db) return [];
+  const results = [];
+  for (let month = 1; month <= 12; month++) {
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59);
+
+    const [premPaid] = await db.select({ total: sql<number>`COALESCE(SUM(totalAmount), 0)` })
+      .from(premiumBatches).where(and(eq(premiumBatches.status, 'paid'), gte(premiumBatches.paidAt, startOfMonth), lte(premiumBatches.paidAt, endOfMonth)));
+    const [adPaid] = await db.select({ total: sql<number>`COALESCE(SUM(totalAmount), 0)` })
+      .from(adBatches).where(and(eq(adBatches.status, 'paid'), gte(adBatches.paidAt, startOfMonth), lte(adBatches.paidAt, endOfMonth)));
+
+    results.push({
+      month,
+      premiumRevenue: Number(premPaid?.total || 0),
+      adRevenue: Number(adPaid?.total || 0),
+      total: Number(premPaid?.total || 0) + Number(adPaid?.total || 0),
+    });
+  }
+  return results;
+}
+
+export async function getDailyProfitData(year: number, month: number) {
+  const db = await getDb(); if (!db) return [];
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const results = [];
+  for (let day = 1; day <= daysInMonth; day++) {
+    const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
+    const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
+
+    const [premPaid] = await db.select({ total: sql<number>`COALESCE(SUM(totalAmount), 0)` })
+      .from(premiumBatches).where(and(eq(premiumBatches.status, 'paid'), gte(premiumBatches.paidAt, startOfDay), lte(premiumBatches.paidAt, endOfDay)));
+    const [adPaid] = await db.select({ total: sql<number>`COALESCE(SUM(totalAmount), 0)` })
+      .from(adBatches).where(and(eq(adBatches.status, 'paid'), gte(adBatches.paidAt, startOfDay), lte(adBatches.paidAt, endOfDay)));
+
+    results.push({
+      day,
+      premiumRevenue: Number(premPaid?.total || 0),
+      adRevenue: Number(adPaid?.total || 0),
+      total: Number(premPaid?.total || 0) + Number(adPaid?.total || 0),
+    });
+  }
+  return results;
 }
