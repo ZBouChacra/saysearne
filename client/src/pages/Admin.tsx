@@ -20,7 +20,7 @@ import {
   Pencil, FileText, AlertTriangle, CheckCircle2, XCircle, Search,
   Download, TrendingUp
 } from "lucide-react";
-import { DateRangePickerDialog } from "@/components/DateRangePickerDialog";
+import { SimpleDatePicker } from "@/components/SimpleDatePicker";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -265,7 +265,7 @@ function UserManagement() {
                 <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.roleCol")}</th>
                 <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Type</th>
                 <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.statusCol")}</th>
-                <th className="text-start p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">Fee</th>
+
                 <th className="text-end p-4 font-semibold text-xs uppercase tracking-wider text-muted-foreground">{t("admin.actionsCol")}</th>
               </tr>
             </thead>
@@ -294,14 +294,7 @@ function UserManagement() {
                       {u.isLocked ? t("admin.locked") : t("admin.active")}
                     </Badge>
                   </td>
-                  <td className="p-4">
-                    {u.profileType === 'professional' && (
-                      <div className="flex items-center gap-1.5">
-                        <Switch checked={u.feeEnabled} onCheckedChange={(v) => updateFee.mutate({ userId: u.id, fee: u.professionalFee || "0", enabled: v })} />
-                        {u.feeEnabled && <span className="text-xs font-medium">${u.professionalFee || 0}</span>}
-                      </div>
-                    )}
-                  </td>
+
                   <td className="p-4">
                     <div className="flex gap-1 justify-end">
                       <Button variant="ghost" size="sm" onClick={() => setSelectedUserId(u.id)} title="View Details" className="rounded-lg hover:bg-[#4A9B82]/10"><Eye className="h-4 w-4" /></Button>
@@ -309,10 +302,7 @@ function UserManagement() {
                         {u.isLocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                       </Button>
                       {u.profileType === 'professional' && (
-                        <>
-                          <Button variant="ghost" size="sm" onClick={() => togglePremium.mutate({ userId: u.id, isPremium: !u.isPremium })} className={`rounded-lg hover:bg-[#4A9B82]/10 ${u.isPremium ? "text-[#4A9B82]" : ""}`}><Crown className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="sm" onClick={() => toggleStarred.mutate({ userId: u.id, isStarred: !u.isStarred })} className={`rounded-lg hover:bg-[#D4A757]/10 ${u.isStarred ? "text-[#D4A757]" : ""}`}><Star className="h-4 w-4" /></Button>
-                        </>
+                        <Button variant="ghost" size="sm" onClick={() => toggleStarred.mutate({ userId: u.id, isStarred: !u.isStarred })} className={`rounded-lg hover:bg-[#D4A757]/10 ${u.isStarred ? "text-[#D4A757]" : ""}`}><Star className="h-4 w-4" /></Button>
                       )}
                     </div>
                   </td>
@@ -452,7 +442,7 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
                 <DialogHeader><DialogTitle className="font-serif text-xl">Create Premium Batch</DialogTitle></DialogHeader>
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">Country: <strong>{userCountry || "Global"}</strong> · Max listings: <strong>{maxCount}</strong> · Default fee: <strong>${defaultFee}/day</strong></p>
-                  <DateRangePickerDialog
+                  <SimpleDatePicker
                     startDate={batchStart}
                     endDate={batchEnd}
                     onStartChange={setBatchStart}
@@ -1054,7 +1044,7 @@ function AdManagement() {
           {batchDialog && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Country: <strong>{batchDialog.country || "Global"}</strong> · Default fee: <strong>${defaultFee}/day</strong></p>
-              <DateRangePickerDialog
+              <SimpleDatePicker
                 startDate={batchStart}
                 endDate={batchEnd}
                 onStartChange={setBatchStart}
