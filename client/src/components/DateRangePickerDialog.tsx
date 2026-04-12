@@ -21,7 +21,7 @@ export function DateRangePickerDialog({
   onEndChange,
   minDate,
   disabledDates = [],
-  title = "Select Date Range",
+  title = "Select Dates",
 }: DateRangePickerDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectingEnd, setSelectingEnd] = useState(false);
@@ -33,29 +33,31 @@ export function DateRangePickerDialog({
     );
   };
 
+  const handleStartDateClick = () => {
+    setSelectingEnd(false);
+    setOpen(true);
+  };
+
+  const handleEndDateClick = () => {
+    if (!startDate) {
+      alert("Please select start date first");
+      return;
+    }
+    setSelectingEnd(true);
+    setOpen(true);
+  };
+
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
 
-    if (!selectingEnd && !startDate) {
+    if (!selectingEnd) {
       onStartChange(date);
-      setSelectingEnd(true);
-    } else if (!selectingEnd && startDate) {
-      if (date < startDate) {
-        onStartChange(date);
-        onEndChange(startDate);
-      } else {
-        onEndChange(date);
+    } else {
+      if (date < startDate!) {
+        alert("End date must be after start date");
+        return;
       }
-      setSelectingEnd(false);
-      setOpen(false);
-    } else if (selectingEnd && startDate) {
-      if (date < startDate) {
-        onStartChange(date);
-        onEndChange(startDate);
-      } else {
-        onEndChange(date);
-      }
-      setSelectingEnd(false);
+      onEndChange(date);
       setOpen(false);
     }
   };
@@ -70,76 +72,116 @@ export function DateRangePickerDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-full justify-start text-left font-normal rounded-lg h-11"
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {startDate && endDate
-            ? `${formatDate(startDate)} → ${formatDate(endDate)}`
-            : selectingEnd
-              ? `From ${formatDate(startDate)}, select end date`
-              : "Select date range"}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-serif text-lg">
-            {selectingEnd ? "Select End Date" : "Select Start Date"}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-4">
-          <Calendar
-            mode="single"
-            selected={selectingEnd ? endDate : startDate}
-            onSelect={handleDateSelect}
-            disabled={isDateDisabled}
-            defaultMonth={selectingEnd ? endDate : startDate}
-          />
-          {startDate && endDate && (
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm">
-              <p>
-                <strong>Start:</strong> {formatDate(startDate)}
-              </p>
-              <p>
-                <strong>End:</strong> {formatDate(endDate)}
-              </p>
-              <p className="text-muted-foreground mt-1">
-                {Math.max(
-                  0,
-                  Math.ceil(
-                    (endDate.getTime() - startDate.getTime()) / 86400000
-                  ) + 1
-                )}{" "}
-                days
-              </p>
-            </div>
-          )}
-          <div className="flex gap-2">
-            {startDate && endDate && (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs text-muted-foreground font-medium">Start Date</label>
+          <Dialog open={open && !selectingEnd} onOpenChange={(isOpen) => {
+            if (isOpen) {
+              setSelectingEnd(false);
+              setOpen(true);
+            } else {
+              setOpen(false);
+            }
+          }}>
+            <DialogTrigger asChild>
               <Button
                 variant="outline"
-                onClick={() => {
-                  onStartChange(undefined);
-                  onEndChange(undefined);
-                  setSelectingEnd(false);
-                }}
-                className="flex-1"
+                className="w-full justify-start text-left font-normal rounded-lg h-11 mt-1"
+                onClick={handleStartDateClick}
               >
-                Clear
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formatDate(startDate)}
               </Button>
-            )}
-            <Button
-              onClick={() => setOpen(false)}
-              className="flex-1 bg-primary hover:bg-primary/90"
-            >
-              Done
-            </Button>
-          </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-lg">Select Start Date</DialogTitle>
+              </DialogHeader>
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={handleDateSelect}
+                disabled={isDateDisabled}
+                defaultMonth={startDate}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <div>
+          <label className="text-xs text-muted-foreground font-medium">End Date</label>
+          <Dialog open={open && selectingEnd} onOpenChange={(isOpen) => {
+            if (isOpen && startDate) {
+              setSelectingEnd(true);
+              setOpen(true);
+            } else {
+              setOpen(false);
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal rounded-lg h-11 mt-1"
+                onClick={handleEndDateClick}
+                disabled={!startDate}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {formatDate(endDate)}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-lg">Select End Date</DialogTitle>
+              </DialogHeader>
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={handleDateSelect}
+                disabled={(date) => {
+                  if (isDateDisabled(date)) return true;
+                  if (startDate && date < startDate) return true;
+                  return false;
+                }}
+                defaultMonth={endDate || startDate}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {startDate && endDate && (
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm">
+          <p>
+            <strong>Start:</strong> {formatDate(startDate)}
+          </p>
+          <p>
+            <strong>End:</strong> {formatDate(endDate)}
+          </p>
+          <p className="text-muted-foreground mt-1">
+            {Math.max(
+              0,
+              Math.ceil(
+                (endDate.getTime() - startDate.getTime()) / 86400000
+              ) + 1
+            )}{" "}
+            days
+          </p>
+        </div>
+      )}
+
+      {startDate && endDate && (
+        <Button
+          variant="outline"
+          onClick={() => {
+            onStartChange(undefined);
+            onEndChange(undefined);
+          }}
+          className="w-full"
+        >
+          Clear Dates
+        </Button>
+      )}
+    </div>
   );
 }

@@ -452,17 +452,14 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
                 <DialogHeader><DialogTitle className="font-serif text-xl">Create Premium Batch</DialogTitle></DialogHeader>
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">Country: <strong>{userCountry || "Global"}</strong> · Max listings: <strong>{maxCount}</strong> · Default fee: <strong>${defaultFee}/day</strong></p>
-                  <div>
-                    <Label className="text-sm font-semibold">Date Range</Label>
-                    <DateRangePickerDialog
-                      startDate={batchStart}
-                      endDate={batchEnd}
-                      onStartChange={setBatchStart}
-                      onEndChange={setBatchEnd}
-                      minDate={new Date()}
-                      title="Select Premium Batch Dates"
-                    />
-                  </div>
+                  <DateRangePickerDialog
+                    startDate={batchStart}
+                    endDate={batchEnd}
+                    onStartChange={setBatchStart}
+                    onEndChange={setBatchEnd}
+                    minDate={new Date()}
+                    title="Select Premium Batch Dates"
+                  />
                   <div>
                     <Label className="text-sm font-semibold">Fee per Day (USD)</Label>
                     <Input type="number" step="0.01" value={batchFee} onChange={(e) => setBatchFee(e.target.value)} className="mt-1 rounded-lg h-11" placeholder={defaultFee} />
@@ -1057,17 +1054,14 @@ function AdManagement() {
           {batchDialog && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Country: <strong>{batchDialog.country || "Global"}</strong> · Default fee: <strong>${defaultFee}/day</strong></p>
-              <div>
-                <Label className="text-sm font-semibold">Date Range</Label>
-                <DateRangePickerDialog
-                  startDate={batchStart}
-                  endDate={batchEnd}
-                  onStartChange={setBatchStart}
-                  onEndChange={setBatchEnd}
-                  minDate={new Date()}
-                  title="Select Ad Batch Dates"
-                />
-              </div>
+              <DateRangePickerDialog
+                startDate={batchStart}
+                endDate={batchEnd}
+                onStartChange={setBatchStart}
+                onEndChange={setBatchEnd}
+                minDate={new Date()}
+                title="Select Ad Batch Dates"
+              />
               <div><Label className="text-sm font-semibold">Fee per Day (USD)</Label><Input type="number" step="0.01" value={batchFee} onChange={(e) => setBatchFee(e.target.value)} className="mt-1 rounded-lg h-11" placeholder={defaultFee} /></div>
               <div><Label className="text-sm font-semibold">Notes (optional)</Label><Textarea value={batchNotes} onChange={(e) => setBatchNotes(e.target.value)} className="mt-1 rounded-lg" rows={2} /></div>
               {batchDays > 0 && (
