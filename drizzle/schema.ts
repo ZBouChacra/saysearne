@@ -15,6 +15,7 @@ export const users = mysqlTable("users", {
   dateOfBirth: varchar("dateOfBirth", { length: 10 }), // dd/MM/yyyy format
   nationality: varchar("nationality", { length: 100 }),
   country: varchar("country", { length: 100 }),
+  city: varchar("city", { length: 100 }),
   profilePhoto: text("profilePhoto"),
   bannerPhoto: text("bannerPhoto"),
   bio: text("bio"),
@@ -189,6 +190,7 @@ export const feeConfig = mysqlTable("fee_config", {
   id: int("id").autoincrement().primaryKey(),
   feeType: mysqlEnum("feeType", ["premium", "advertisement"]).notNull(),
   country: varchar("country", { length: 100 }), // null = default, non-null = country-specific exception
+  city: varchar("city", { length: 100 }), // null = country-level, non-null = city-specific exception
   feePerDay: decimal("feePerDay", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency", { length: 3 }).default("USD").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -200,6 +202,7 @@ export const listingOrderConfig = mysqlTable("listing_order_config", {
   id: int("id").autoincrement().primaryKey(),
   configType: mysqlEnum("configType", ["premium", "advertisement"]).notNull(),
   country: varchar("country", { length: 100 }), // null = default, non-null = country-specific exception
+  city: varchar("city", { length: 100 }), // null = country-level, non-null = city-specific exception
   maxCount: int("maxCount").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

@@ -362,14 +362,14 @@ export async function markMessagesAsRead(roomId: number, userId: number) {
 
 export async function getUnreadCount(userId: number) {
   const db = await getDb(); if (!db) return 0;
-  const rooms = await getChatRoomsByUser(userId);
-  let total = 0;
-  for (const room of rooms) {
-    const result = await db.select({ count: sql<number>`count(*)` }).from(chatMessages)
-      .where(and(eq(chatMessages.roomId, room.id), sql`${chatMessages.senderId} != ${userId}`, eq(chatMessages.isRead, false)));
-    total += result[0]?.count || 0;
-  }
-  return total;
+  const result = await db.select({ count: sql<number>`COUNT(*)` }).from(chatMessages)
+    .innerJoin(chatRooms, eq(chatMessages.roomId, chatRooms.id))
+    .where(and(
+      sql`(${chatRooms.user1Id} = ${userId} OR ${chatRooms.user2Id} = ${userId})`,
+      sql`${chatMessages.senderId} != ${userId}`,
+      eq(chatMessages.isRead, false)
+    ));
+  return result[0]?.count || 0;
 }
 
 // Reviews
@@ -513,30 +513,37 @@ export async function getFeeConfigs(feeType?: string) {
   return db.select().from(feeConfig).orderBy(asc(feeConfig.feeType), asc(feeConfig.country));
 }
 
-export async function getFeeForCountry(feeType: string, country?: string): Promise<string> {
+export async function getFeeForCountry(feeType: string, country?: string, city?: string): Promise<string> {
   const db = await getDb(); if (!db) return '0';
-  // Try country-specific first
+  // Try city-specific first
+  if (country && city) {
+    const specific = await db.select().from(feeConfig)
+      .where(and(eq(feeConfig.feeType, feeType as any), eq(feeConfig.country, country), eq(feeConfig.city, city))).limit(1);
+    if (specific.length > 0) return String(specific[0].feePerDay);
+  }
+  // Try country-specific
   if (country) {
     const specific = await db.select().from(feeConfig)
-      .where(and(eq(feeConfig.feeType, feeType as any), eq(feeConfig.country, country))).limit(1);
+      .where(and(eq(feeConfig.feeType, feeType as any), eq(feeConfig.country, country), sql`${feeConfig.city} IS NULL`)).limit(1);
     if (specific.length > 0) return String(specific[0].feePerDay);
   }
   // Fall back to default (country is null)
   const defaultFee = await db.select().from(feeConfig)
-    .where(and(eq(feeConfig.feeType, feeType as any), sql`${feeConfig.country} IS NULL`)).limit(1);
+    .where(and(eq(feeConfig.feeType, feeType as any), sql`${feeConfig.country} IS NULL`, sql`${feeConfig.city} IS NULL`)).limit(1);
   return defaultFee.length > 0 ? String(defaultFee[0].feePerDay) : '0';
 }
 
-export async function upsertFeeConfig(feeType: string, country: string | null, feePerDay: string) {
+export async function upsertFeeConfig(feeType: string, country: string | null, city: string | null, feePerDay: string) {
   const db = await getDb(); if (!db) return;
   const conditions = country
-    ? and(eq(feeConfig.feeType, feeType as any), eq(feeConfig.country, country))
-    : and(eq(feeConfig.feeType, feeType as any), sql`${feeConfig.country} IS NULL`);
+    ? (city ? and(eq(feeConfig.feeType, feeType as any), eq(feeConfig.country, country), eq(feeConfig.city, city))
+      : and(eq(feeConfig.feeType, feeType as any), eq(feeConfig.country, country), sql`${feeConfig.city} IS NULL`))
+    : and(eq(feeConfig.feeType, feeType as any), sql`${feeConfig.country} IS NULL`, sql`${feeConfig.city} IS NULL`);
   const existing = await db.select().from(feeConfig).where(conditions).limit(1);
   if (existing.length > 0) {
     await db.update(feeConfig).set({ feePerDay }).where(eq(feeConfig.id, existing[0].id));
   } else {
-    await db.insert(feeConfig).values({ feeType: feeType as any, country, feePerDay } as any);
+    await db.insert(feeConfig).values({ feeType: feeType as any, country, city, feePerDay } as any);
   }
 }
 
@@ -552,28 +559,36 @@ export async function getListingOrderConfigs(configType?: string) {
   return db.select().from(listingOrderConfig).orderBy(asc(listingOrderConfig.configType), asc(listingOrderConfig.country));
 }
 
-export async function getListingOrderForCountry(configType: string, country?: string): Promise<number> {
+export async function getListingOrderForCountry(configType: string, country?: string, city?: string): Promise<number> {
   const db = await getDb(); if (!db) return 999;
+  // Try city-specific first
+  if (country && city) {
+    const specific = await db.select().from(listingOrderConfig)
+      .where(and(eq(listingOrderConfig.configType, configType as any), eq(listingOrderConfig.country, country), eq(listingOrderConfig.city, city))).limit(1);
+    if (specific.length > 0) return specific[0].maxCount;
+  }
+  // Try country-specific
   if (country) {
     const specific = await db.select().from(listingOrderConfig)
-      .where(and(eq(listingOrderConfig.configType, configType as any), eq(listingOrderConfig.country, country))).limit(1);
+      .where(and(eq(listingOrderConfig.configType, configType as any), eq(listingOrderConfig.country, country), sql`${listingOrderConfig.city} IS NULL`)).limit(1);
     if (specific.length > 0) return specific[0].maxCount;
   }
   const defaultConfig = await db.select().from(listingOrderConfig)
-    .where(and(eq(listingOrderConfig.configType, configType as any), sql`${listingOrderConfig.country} IS NULL`)).limit(1);
+    .where(and(eq(listingOrderConfig.configType, configType as any), sql`${listingOrderConfig.country} IS NULL`, sql`${listingOrderConfig.city} IS NULL`)).limit(1);
   return defaultConfig.length > 0 ? defaultConfig[0].maxCount : 999;
 }
 
-export async function upsertListingOrderConfig(configType: string, country: string | null, maxCount: number) {
+export async function upsertListingOrderConfig(configType: string, country: string | null, city: string | null, maxCount: number) {
   const db = await getDb(); if (!db) return;
   const conditions = country
-    ? and(eq(listingOrderConfig.configType, configType as any), eq(listingOrderConfig.country, country))
-    : and(eq(listingOrderConfig.configType, configType as any), sql`${listingOrderConfig.country} IS NULL`);
+    ? (city ? and(eq(listingOrderConfig.configType, configType as any), eq(listingOrderConfig.country, country), eq(listingOrderConfig.city, city))
+      : and(eq(listingOrderConfig.configType, configType as any), eq(listingOrderConfig.country, country), sql`${listingOrderConfig.city} IS NULL`))
+    : and(eq(listingOrderConfig.configType, configType as any), sql`${listingOrderConfig.country} IS NULL`, sql`${listingOrderConfig.city} IS NULL`);
   const existing = await db.select().from(listingOrderConfig).where(conditions).limit(1);
   if (existing.length > 0) {
     await db.update(listingOrderConfig).set({ maxCount }).where(eq(listingOrderConfig.id, existing[0].id));
   } else {
-    await db.insert(listingOrderConfig).values({ configType: configType as any, country, maxCount } as any);
+    await db.insert(listingOrderConfig).values({ configType: configType as any, country, city, maxCount } as any);
   }
 }
 
@@ -722,7 +737,9 @@ export async function toggleUserLock(userId: number, isLocked: boolean) {
 
 export async function toggleUserPremium(userId: number, isPremium: boolean) {
   const db = await getDb(); if (!db) return;
-  await db.update(users).set({ isPremium }).where(eq(users.id, userId));
+  // When removing premium, also disable the fee
+  const updateData = isPremium ? { isPremium } : { isPremium, feeEnabled: false };
+  await db.update(users).set(updateData).where(eq(users.id, userId));
 }
 
 export async function toggleUserStarred(userId: number, isStarred: boolean) {

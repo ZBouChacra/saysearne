@@ -462,6 +462,21 @@ const translations: Record<Language, Record<string, string>> = {
     "home.stat.satisfaction": "Satisfaction",
     "home.topRatedBadge": "TOP RATED",
     "home.categoriesBadge": "EXPLORE",
+
+    // Missing keys - About
+    "about.badge": "ABOUT US",
+
+    // Missing keys - Contact info cards
+    "contact.chatTitle": "Get in Touch",
+    "contact.chatDesc": "We're here to help with any questions about our platform.",
+    "contact.responseTitle": "Quick Response",
+    "contact.responseDesc": "We typically respond within 24 hours.",
+    "contact.secureTitle": "Secure & Private",
+    "contact.secureDesc": "Your information is kept confidential and secure.",
+    "contact.loggedInAs": "Sending as",
+
+    // Missing keys - Search
+    "search.subtitle": "Discover top professionals near you",
   },
   ar: {
     // Navbar
@@ -913,6 +928,21 @@ const translations: Record<Language, Record<string, string>> = {
     "home.stat.satisfaction": "رضا العملاء",
     "home.topRatedBadge": "الأعلى تقييماً",
     "home.categoriesBadge": "استكشف",
+
+    // Missing keys - About
+    "about.badge": "من نحن",
+
+    // Missing keys - Contact info cards
+    "contact.chatTitle": "تواصل معنا",
+    "contact.chatDesc": "نحن هنا للمساعدة في أي أسئلة حول منصتنا.",
+    "contact.responseTitle": "استجابة سريعة",
+    "contact.responseDesc": "نرد عادة خلال 24 ساعة.",
+    "contact.secureTitle": "آمن وخاص",
+    "contact.secureDesc": "معلوماتك محفوظة بسرية وأمان.",
+    "contact.loggedInAs": "الإرسال باسم",
+
+    // Missing keys - Search
+    "search.subtitle": "اكتشف أفضل المحترفين بالقرب منك",
   },
 };
 

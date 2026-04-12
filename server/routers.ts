@@ -320,7 +320,7 @@ export const appRouter = router({
     })).mutation(async ({ ctx, input }) => {
       const id = await db.createContactMessage({ ...input, userId: input.userId || ctx.user?.id });
       try {
-        await notifyOwner({ title: `New Contact: ${input.subject}`, content: `From: ${input.email}\n\n${input.description}` });
+        await notifyOwner({ title: `SaySerné >> Contact Us >> ${input.subject}`, content: `From: ${input.email}\n\n${input.description}` });
       } catch (e) { console.warn('Contact notification failed:', e); }
       return { id, success: true };
     }),
@@ -500,9 +500,10 @@ export const appRouter = router({
       upsert: adminProcedure.input(z.object({
         feeType: z.enum(['premium', 'advertisement']),
         country: z.string().nullable(),
+        city: z.string().nullable().optional(),
         feePerDay: z.string(),
       })).mutation(async ({ input }) => {
-        await db.upsertFeeConfig(input.feeType, input.country, input.feePerDay);
+        await db.upsertFeeConfig(input.feeType, input.country, input.city || null, input.feePerDay);
         return { success: true };
       }),
       delete: adminProcedure.input(z.object({ id: z.number() }))
@@ -512,14 +513,15 @@ export const appRouter = router({
     listingOrderConfig: router({
       list: adminProcedure.input(z.object({ configType: z.string().optional() }).optional())
         .query(async ({ input }) => db.getListingOrderConfigs(input?.configType)),
-      getCount: adminProcedure.input(z.object({ configType: z.string(), country: z.string().optional() }))
-        .query(async ({ input }) => db.getListingOrderForCountry(input.configType, input.country)),
+      getCount: adminProcedure.input(z.object({ configType: z.string(), country: z.string().optional(), city: z.string().optional() }))
+        .query(async ({ input }) => db.getListingOrderForCountry(input.configType, input.country, input.city)),
       upsert: adminProcedure.input(z.object({
         configType: z.enum(['premium', 'advertisement']),
         country: z.string().nullable(),
+        city: z.string().nullable().optional(),
         maxCount: z.number(),
       })).mutation(async ({ input }) => {
-        await db.upsertListingOrderConfig(input.configType, input.country, input.maxCount);
+        await db.upsertListingOrderConfig(input.configType, input.country, input.city || null, input.maxCount);
         return { success: true };
       }),
       delete: adminProcedure.input(z.object({ id: z.number() }))

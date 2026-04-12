@@ -172,3 +172,19 @@
 - [x] 23. Admin/Reviews: include professional name, country, city; search by Review ID, Customer, Professional
 - [x] 24. Admin/Reviews: ability to send message to user directly
 - [x] 25. Fix: Chat room redirect shows error - chat_messages insert fails with params roomId, senderId (missing latitude/longitude columns)
+
+## Feedback Round 7
+- [x] 1. Fix: about.badge, contact.chatTitle, contact.chatDesc, contact.responseTitle, contact.responseDesc, contact.secureTitle, contact.secureDesc, search.subtitle not rendered (translation keys showing instead of values)
+- [x] 2. Contact Us email: update subject to "SaySerné >> Contact Us >> {SUBJECT}"
+- [x] 3. When removing someone as Premium, the Fee should be automatically disabled
+- [ ] 4. Replace start/end date inputs with calendar for Premium and Adv batches (keep overlap/count behavior) - IN PROGRESS
+- [x] 5. Add City field for User
+- [x] 6. Add City field for Advertisement
+- [ ] 7. Remove the Premium toggle button from the admin/Users screen - IN PROGRESS (user becomes premium after batch creation + payment)
+- [ ] 8. Add batch management inside the Advertisement detail (not separate) - IN PROGRESS
+- [x] 9. Default value for Adv should come from Config, with exception per country - backend ready
+- [ ] 10. Admin/Config: Country and City to be dropdowns; settings for Premium, Order Count and Adv - IN PROGRESS
+- [ ] 11. Any ordering to be based on the current User Country and City - IN PROGRESS
+- [x] 12. Fix: ziad.bouchacra@gmail.com found as both User and Admin (duplicate) - added unique index on openId, deleted 117 ghost users
+- [x] 13. Fix: when accessing admin/users, empty users are being created - fixed by adding unique constraint on openId
+- [x] 14. Fix: Chat count always shows 0 (not getting real unread count) - optimized query with single SQL join
