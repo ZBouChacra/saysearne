@@ -76,9 +76,9 @@ export default function Navbar() {
                 }`}>
                   <link.icon className="h-4 w-4" />
                   <span className="hidden lg:inline">{link.label}</span>
-                  {link.badge && Number(link.badge) > 0 && (
+                  {link.badge !== undefined && Number(link.badge) > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-                      {Number(link.badge) > 9 ? '9+' : link.badge}
+                      {Number(link.badge) > 99 ? '99+' : link.badge}
                     </span>
                   )}
                 </button>

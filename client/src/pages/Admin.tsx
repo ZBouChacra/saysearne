@@ -20,6 +20,7 @@ import {
   Pencil, FileText, AlertTriangle, CheckCircle2, XCircle, Search,
   Download, TrendingUp
 } from "lucide-react";
+import { DateRangePickerDialog } from "@/components/DateRangePickerDialog";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -345,8 +346,8 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
   });
   const [fee, setFee] = useState("");
   const [batchDialog, setBatchDialog] = useState(false);
-  const [batchStart, setBatchStart] = useState("");
-  const [batchEnd, setBatchEnd] = useState("");
+  const [batchStart, setBatchStart] = useState<Date | undefined>();
+  const [batchEnd, setBatchEnd] = useState<Date | undefined>();
   const [batchFee, setBatchFee] = useState("");
   const [batchNotes, setBatchNotes] = useState("");
 
@@ -360,16 +361,18 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
     || listingConfigs?.find((c: any) => !c.country)?.maxCount || 999;
 
   const today = new Date().toISOString().split("T")[0];
-  const batchDays = batchStart && batchEnd ? Math.max(0, Math.ceil((new Date(batchEnd).getTime() - new Date(batchStart).getTime()) / 86400000) + 1) : 0;
+  const batchDays = batchStart && batchEnd ? Math.max(0, Math.ceil((batchEnd.getTime() - batchStart.getTime()) / 86400000) + 1) : 0;
   const batchTotal = batchDays * parseFloat(batchFee || defaultFee || "0");
 
   const handleCreateBatch = () => {
     if (!batchStart || !batchEnd) { toast.error("Please select start and end dates"); return; }
+    const startStr = batchStart instanceof Date ? batchStart.toISOString().split('T')[0] : batchStart;
+    const endStr = batchEnd instanceof Date ? batchEnd.toISOString().split('T')[0] : batchEnd;
     createBatch.mutate({
       userId,
       country: userCountry,
-      startDate: batchStart,
-      endDate: batchEnd,
+      startDate: startStr,
+      endDate: endStr,
       feePerDay: batchFee || defaultFee,
       totalDays: batchDays,
       totalAmount: batchTotal.toFixed(2),
@@ -441,7 +444,7 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
         <div className="bg-card border border-border/60 rounded-xl p-6 mt-6">
           <div className="flex items-center justify-between mb-5">
             <h3 className="font-serif text-xl font-bold flex items-center gap-2"><Crown className="h-5 w-5 text-[#4A9B82]" /> Premium Batches</h3>
-            <Dialog open={batchDialog} onOpenChange={(open) => { setBatchDialog(open); if (open) { setBatchFee(defaultFee); setBatchStart(""); setBatchEnd(""); setBatchNotes(""); } }}>
+            <Dialog open={batchDialog} onOpenChange={(open) => { setBatchDialog(open); if (open) { setBatchFee(defaultFee); setBatchStart(undefined); setBatchEnd(undefined); setBatchNotes(""); } }}>
               <DialogTrigger asChild>
                 <Button className="gap-2 rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white px-5"><Plus className="h-4 w-4" /> New Batch</Button>
               </DialogTrigger>
@@ -449,15 +452,16 @@ function UserDetail({ userId, onBack }: { userId: number; onBack: () => void }) 
                 <DialogHeader><DialogTitle className="font-serif text-xl">Create Premium Batch</DialogTitle></DialogHeader>
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">Country: <strong>{userCountry || "Global"}</strong> · Max listings: <strong>{maxCount}</strong> · Default fee: <strong>${defaultFee}/day</strong></p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-sm font-semibold">Start Date</Label>
-                      <Input type="date" value={batchStart} min={today} onChange={(e) => setBatchStart(e.target.value)} className="mt-1 rounded-lg h-11" />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-semibold">End Date</Label>
-                      <Input type="date" value={batchEnd} min={batchStart || today} onChange={(e) => setBatchEnd(e.target.value)} className="mt-1 rounded-lg h-11" />
-                    </div>
+                  <div>
+                    <Label className="text-sm font-semibold">Date Range</Label>
+                    <DateRangePickerDialog
+                      startDate={batchStart}
+                      endDate={batchEnd}
+                      onStartChange={setBatchStart}
+                      onEndChange={setBatchEnd}
+                      minDate={new Date()}
+                      title="Select Premium Batch Dates"
+                    />
                   </div>
                   <div>
                     <Label className="text-sm font-semibold">Fee per Day (USD)</Label>
@@ -918,8 +922,8 @@ function AdManagement() {
   const [batchDialog, setBatchDialog] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [form, setForm] = useState({ title: "", imageUrl: "", linkUrl: "", position: "home_banner" as const, country: "", city: "" });
-  const [batchStart, setBatchStart] = useState("");
-  const [batchEnd, setBatchEnd] = useState("");
+  const [batchStart, setBatchStart] = useState<Date | undefined>();
+  const [batchEnd, setBatchEnd] = useState<Date | undefined>();
   const [batchFee, setBatchFee] = useState("");
   const [batchNotes, setBatchNotes] = useState("");
 
@@ -945,7 +949,7 @@ function AdManagement() {
     feeConfigs?.find((f: any) => f.country === batchDialog.country)?.feePerDay
     || feeConfigs?.find((f: any) => !f.country)?.feePerDay || "0"
   ) : "0";
-  const batchDays = batchStart && batchEnd ? Math.max(0, Math.ceil((new Date(batchEnd).getTime() - new Date(batchStart).getTime()) / 86400000) + 1) : 0;
+  const batchDays = batchStart && batchEnd ? Math.max(0, Math.ceil((batchEnd.getTime() - batchStart.getTime()) / 86400000) + 1) : 0;
   const batchTotal = batchDays * parseFloat(batchFee || defaultFee || "0");
 
   return (
@@ -1047,15 +1051,22 @@ function AdManagement() {
       </Dialog>
 
       {/* Ad Batch Dialog */}
-      <Dialog open={!!batchDialog} onOpenChange={(open) => { if (!open) setBatchDialog(null); if (open && batchDialog) { setBatchFee(defaultFee); setBatchStart(""); setBatchEnd(""); setBatchNotes(""); } }}>
+      <Dialog open={!!batchDialog} onOpenChange={(open) => { if (!open) setBatchDialog(null); if (open && batchDialog) { setBatchFee(defaultFee); setBatchStart(undefined); setBatchEnd(undefined); setBatchNotes(""); } }}>
         <DialogContent>
           <DialogHeader><DialogTitle className="font-serif text-xl">Schedule Ad Batch: {batchDialog?.title}</DialogTitle></DialogHeader>
           {batchDialog && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Country: <strong>{batchDialog.country || "Global"}</strong> · Default fee: <strong>${defaultFee}/day</strong></p>
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-sm font-semibold">Start Date</Label><Input type="date" value={batchStart} min={today} onChange={(e) => setBatchStart(e.target.value)} className="mt-1 rounded-lg h-11" /></div>
-                <div><Label className="text-sm font-semibold">End Date</Label><Input type="date" value={batchEnd} min={batchStart || today} onChange={(e) => setBatchEnd(e.target.value)} className="mt-1 rounded-lg h-11" /></div>
+              <div>
+                <Label className="text-sm font-semibold">Date Range</Label>
+                <DateRangePickerDialog
+                  startDate={batchStart}
+                  endDate={batchEnd}
+                  onStartChange={setBatchStart}
+                  onEndChange={setBatchEnd}
+                  minDate={new Date()}
+                  title="Select Ad Batch Dates"
+                />
               </div>
               <div><Label className="text-sm font-semibold">Fee per Day (USD)</Label><Input type="number" step="0.01" value={batchFee} onChange={(e) => setBatchFee(e.target.value)} className="mt-1 rounded-lg h-11" placeholder={defaultFee} /></div>
               <div><Label className="text-sm font-semibold">Notes (optional)</Label><Textarea value={batchNotes} onChange={(e) => setBatchNotes(e.target.value)} className="mt-1 rounded-lg" rows={2} /></div>
@@ -1066,9 +1077,11 @@ function AdManagement() {
               )}
               <Button onClick={() => {
                 if (!batchStart || !batchEnd) { toast.error("Please select dates"); return; }
+                const startStr = batchStart instanceof Date ? batchStart.toISOString().split('T')[0] : batchStart;
+                const endStr = batchEnd instanceof Date ? batchEnd.toISOString().split('T')[0] : batchEnd;
                 createBatch.mutate({
                   advertisementId: batchDialog.id, country: batchDialog.country || undefined,
-                  startDate: batchStart, endDate: batchEnd, feePerDay: batchFee || defaultFee,
+                  startDate: startStr, endDate: endStr, feePerDay: batchFee || defaultFee,
                   totalDays: batchDays, totalAmount: batchTotal.toFixed(2), notes: batchNotes || undefined,
                 });
               }} size="lg" className="w-full rounded-lg bg-[#4A9B82] hover:bg-[#2D6D5F] text-white" disabled={createBatch.isPending || !batchStart || !batchEnd}>

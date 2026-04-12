@@ -99,6 +99,7 @@ function PersonalInfoForm() {
     dateOfBirth: (user as any)?.dateOfBirth ? formatDOB((user as any).dateOfBirth) : "",
     nationality: (user as any)?.nationality || "",
     country: (user as any)?.country || "",
+    city: (user as any)?.city || "",
     bio: (user as any)?.bio || "",
     profileType: (user as any)?.profileType || "customer",
   });
@@ -181,6 +182,20 @@ function PersonalInfoForm() {
               {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
+        </div>
+        <div>
+          <Label className="text-sm font-semibold">{t("profile.city")}</Label>
+          {form.country && CITIES_BY_COUNTRY[form.country] ? (
+            <Select value={form.city || "unset"} onValueChange={(v) => setForm(f => ({ ...f, city: v === "unset" ? "" : v }))}>
+              <SelectTrigger className="mt-1.5 rounded-lg h-11"><SelectValue placeholder={t("profile.select")} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unset">—</SelectItem>
+                {CITIES_BY_COUNTRY[form.country].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} placeholder={t("profile.cityPlaceholder")} className="mt-1.5 rounded-lg h-11" />
+          )}
         </div>
       </div>
       <div>
