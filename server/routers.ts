@@ -71,8 +71,10 @@ export const appRouter = router({
         return {
           id: user.id, name: user.name, firstName: user.firstName, lastName: user.lastName,
           email: user.email, phone: user.phone, sex: user.sex, dateOfBirth: user.dateOfBirth,
-          nationality: user.nationality, country: user.country, profilePhoto: user.profilePhoto,
-          bannerPhoto: user.bannerPhoto, bio: user.bio, isPremium: user.isPremium,
+          nationality: user.nationality, country: user.country, city: (user as any).city,
+          profilePhoto: user.profilePhoto,
+          bannerPhoto: user.bannerPhoto, bio: user.bio, portfolio: (user as any).portfolio,
+          isPremium: user.isPremium,
           isStarred: user.isStarred, profileType: user.profileType,
           professions: profsWithImages,
         };
@@ -87,7 +89,8 @@ export const appRouter = router({
       firstName: z.string().optional(), lastName: z.string().optional(),
       phone: z.string().optional(), sex: z.enum(['male', 'female']).optional(),
       dateOfBirth: z.string().optional(), nationality: z.string().optional(),
-      country: z.string().optional(), bio: z.string().optional(),
+      country: z.string().optional(), city: z.string().optional(), bio: z.string().optional(),
+      portfolio: z.string().optional(),
       profilePhoto: z.string().optional(), bannerPhoto: z.string().optional(),
       preferredLanguage: z.enum(['en', 'ar']).optional(),
       profileType: z.enum(['customer', 'professional']).optional(),
@@ -339,9 +342,8 @@ export const appRouter = router({
   admin: router({
     stats: adminProcedure.query(async () => db.getAdminStats()),
     users: adminProcedure.input(z.object({
-      page: z.number().optional(), limit: z.number().optional(),
-      search: z.string().optional(), typeFilter: z.string().optional(),
-    })).query(async ({ input }) => db.getAllUsers(input.page || 1, input.limit || 20, input.search, input.typeFilter)),
+      page: z.number().optional(), search: z.string().optional(), typeFilter: z.string().optional(), premiumOnly: z.boolean().optional(),
+    }).optional()).query(async ({ input }) => db.getAllUsers(input?.page, 20, input?.search, input?.typeFilter, input?.premiumOnly)),
     userDetail: adminProcedure.input(z.object({ userId: z.number() }))
       .query(async ({ input }) => {
         const user = await db.getUserById(input.userId);
@@ -425,6 +427,8 @@ export const appRouter = router({
       })).mutation(async ({ input }) => { const { id, ...data } = input; await db.updateAd(id, data); return { success: true }; }),
       delete: adminProcedure.input(z.object({ id: z.number() }))
         .mutation(async ({ input }) => { await db.deleteAd(input.id); return { success: true }; }),
+      toggleLock: adminProcedure.input(z.object({ id: z.number(), isLocked: z.boolean() }))
+        .mutation(async ({ input }) => { await db.updateAd(input.id, { isLocked: input.isLocked }); return { success: true }; }),
     }),
     // Contact messages with status
     contacts: adminProcedure.input(z.object({ status: z.string().optional() }).optional())
@@ -457,7 +461,7 @@ export const appRouter = router({
     // Payment reconciliation
     premiumReport: adminProcedure.query(async () => db.getPremiumUsersReport()),
     // Chat monitoring
-    chatRooms: adminProcedure.query(async () => {
+    chatRooms: adminProcedure.input(z.object({ search: z.string().optional(), dateFilter: z.string().optional() }).optional()).query(async ({ input }) => {
       const rooms = await db.getAllChatRooms();
       const enriched = await Promise.all(rooms.map(async (r) => {
         const user1 = await db.getUserById(r.user1Id);
@@ -470,7 +474,15 @@ export const appRouter = router({
           lastMessage: messages[0] || null,
         };
       }));
-      return enriched;
+      let filtered = enriched;
+      if (input?.search) {
+        const s = input.search.toLowerCase();
+        filtered = filtered.filter(r => r.user1?.name?.toLowerCase().includes(s) || r.user2?.name?.toLowerCase().includes(s));
+      }
+      if (input?.dateFilter) {
+        filtered = filtered.filter(r => r.lastMessageAt && r.lastMessageAt.toString().startsWith(input!.dateFilter!));
+      }
+      return filtered;
     }),
     chatMessages: adminProcedure.input(z.object({ roomId: z.number(), limit: z.number().optional() }))
       .query(async ({ input }) => {
@@ -531,17 +543,27 @@ export const appRouter = router({
     premiumBatches: router({
       create: adminProcedure.input(z.object({
         userId: z.number(), country: z.string().optional(),
-        startDate: z.string(), endDate: z.string(),
+        selectedDates: z.array(z.string()),
         feePerDay: z.string(), totalDays: z.number(), totalAmount: z.string(),
         notes: z.string().optional(),
       })).mutation(async ({ input }) => {
-        const id = await db.createPremiumBatch({
-          ...input, startDate: new Date(input.startDate), endDate: new Date(input.endDate),
-        });
+        const id = await db.createPremiumBatch(input);
+        // Set user as premium (will be validated by isUserPremiumToday on display)
+        await db.toggleUserPremium(input.userId, true);
         return { id };
       }),
-      byUser: adminProcedure.input(z.object({ userId: z.number() }))
-        .query(async ({ input }) => db.getPremiumBatchesByUser(input.userId)),
+      byUser: adminProcedure.input(z.object({ userId: z.number(), page: z.number().optional() }))
+        .query(async ({ input }) => db.getPremiumBatchesByUser(input.userId, input.page || 1)),
+      update: adminProcedure.input(z.object({
+        id: z.number(), selectedDates: z.array(z.string()).optional(),
+        feePerDay: z.string().optional(), totalDays: z.number().optional(), totalAmount: z.string().optional(),
+        notes: z.string().optional(), status: z.enum(['pending', 'paid', 'active', 'cancelled', 'expired']).optional(),
+      })).mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        if (data.status === 'paid') (data as any).paidAt = new Date();
+        await db.updatePremiumBatch(id, data);
+        return { success: true };
+      }),
       all: adminProcedure.query(async () => db.getAllPremiumBatches()),
       updateStatus: adminProcedure.input(z.object({
         id: z.number(), status: z.enum(['pending', 'paid', 'active', 'cancelled', 'expired']),
@@ -557,23 +579,31 @@ export const appRouter = router({
         return { success: true };
       }),
       countForDate: adminProcedure.input(z.object({ date: z.string(), country: z.string().optional() }))
-        .query(async ({ input }) => db.countPremiumBatchesForDate(new Date(input.date), input.country)),
+        .query(async ({ input }) => db.countPremiumBatchesForDate(input.date, input.country)),
     }),
     // Ad Batches
     adBatches: router({
       create: adminProcedure.input(z.object({
         advertisementId: z.number(), country: z.string().optional(),
-        startDate: z.string(), endDate: z.string(),
+        selectedDates: z.array(z.string()),
         feePerDay: z.string(), totalDays: z.number(), totalAmount: z.string(),
         notes: z.string().optional(),
       })).mutation(async ({ input }) => {
-        const id = await db.createAdBatch({
-          ...input, startDate: new Date(input.startDate), endDate: new Date(input.endDate),
-        });
+        const id = await db.createAdBatch(input);
         return { id };
       }),
-      byAd: adminProcedure.input(z.object({ advertisementId: z.number() }))
-        .query(async ({ input }) => db.getAdBatchesByAd(input.advertisementId)),
+      byAd: adminProcedure.input(z.object({ advertisementId: z.number(), page: z.number().optional() }))
+        .query(async ({ input }) => db.getAdBatchesByAd(input.advertisementId, input.page || 1)),
+      update: adminProcedure.input(z.object({
+        id: z.number(), selectedDates: z.array(z.string()).optional(),
+        feePerDay: z.string().optional(), totalDays: z.number().optional(), totalAmount: z.string().optional(),
+        notes: z.string().optional(), status: z.enum(['pending', 'paid', 'active', 'cancelled', 'expired']).optional(),
+      })).mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        if (data.status === 'paid') (data as any).paidAt = new Date();
+        await db.updateAdBatch(id, data);
+        return { success: true };
+      }),
       all: adminProcedure.query(async () => db.getAllAdBatches()),
       updateStatus: adminProcedure.input(z.object({
         id: z.number(), status: z.enum(['pending', 'paid', 'active', 'cancelled', 'expired']),
@@ -589,7 +619,7 @@ export const appRouter = router({
         return { success: true };
       }),
       countForDate: adminProcedure.input(z.object({ date: z.string(), country: z.string().optional() }))
-        .query(async ({ input }) => db.countAdBatchesForDate(new Date(input.date), input.country)),
+        .query(async ({ input }) => db.countAdBatchesForDate(input.date, input.country)),
     }),
     // Payments
     payments: router({
@@ -621,7 +651,7 @@ export const appRouter = router({
           const sa = statusOrder[a.status] ?? 5;
           const sb = statusOrder[b.status] ?? 5;
           if (sa !== sb) return sa - sb;
-          return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
         return all;
       }),

@@ -131,10 +131,12 @@ function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const prevMsgCountRef = useRef<number>(0);
+  const hasScrolledRef = useRef(false);
   const utils = trpc.useUtils();
 
   const sendMutation = trpc.chat.send.useMutation({
-    onSuccess: () => { setText(""); utils.chat.messages.invalidate({ roomId }); utils.chat.rooms.invalidate(); },
+    onSuccess: () => { setText(""); hasScrolledRef.current = false; utils.chat.messages.invalidate({ roomId }); utils.chat.rooms.invalidate(); },
     onError: (err: any) => toast.error(err.message),
   });
 
@@ -146,7 +148,13 @@ function ChatArea({ roomId, userId, onBack }: { roomId: number; userId: number; 
   });
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const msgCount = messages?.length || 0;
+    // Only auto-scroll on initial load, when new messages arrive, or after sending
+    if (!hasScrolledRef.current || msgCount !== prevMsgCountRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: hasScrolledRef.current ? "smooth" : "auto" });
+      hasScrolledRef.current = true;
+      prevMsgCountRef.current = msgCount;
+    }
   }, [messages]);
 
   const handleSend = () => {

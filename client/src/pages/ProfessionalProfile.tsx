@@ -157,9 +157,18 @@ export default function ProfessionalProfile() {
         <Tabs defaultValue="professions">
           <TabsList className="bg-muted/50 rounded-full p-1">
             <TabsTrigger value="professions" className="rounded-full">{t("profProfile.services")} ({profile.professions.length})</TabsTrigger>
+            {profile.portfolio && <TabsTrigger value="portfolio" className="rounded-full">Portfolio</TabsTrigger>}
             <TabsTrigger value="reviews" className="rounded-full">{t("profProfile.reviews")} ({reviewsData?.length || 0})</TabsTrigger>
             <TabsTrigger value="availability" className="rounded-full">{t("profProfile.availability")}</TabsTrigger>
           </TabsList>
+
+          {profile.portfolio && (
+            <TabsContent value="portfolio" className="mt-6">
+              <div className="bg-card border border-border/60 rounded-xl p-6">
+                <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: simpleMarkdownRender(profile.portfolio) }} />
+              </div>
+            </TabsContent>
+          )}
 
           <TabsContent value="professions" className="mt-6">
             {profile.professions.length > 0 ? (
@@ -308,4 +317,20 @@ export default function ProfessionalProfile() {
       <Footer />
     </div>
   );
+}
+
+function simpleMarkdownRender(text: string): string {
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline">$1</a>')
+    .replace(/^- (.+)$/gm, "<li>$1</li>")
+    .replace(/(<li>[\s\S]*<\/li>)/g, "<ul>$1</ul>")
+    .replace(/<\/ul>\s*<ul>/g, "")
+    .replace(/\n\n/g, "<br/><br/>")
+    .replace(/\n/g, "<br/>");
 }

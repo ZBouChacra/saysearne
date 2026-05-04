@@ -12,31 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { User, Briefcase, Plus, Trash2, Save, Loader2, Clock, Building2, MapPin, Sparkles } from "lucide-react";
+import { CountrySelect, CitySelect, PhoneInput } from "@/components/CountrySelect";
+import { User, Briefcase, Plus, Trash2, Save, Loader2, Clock, Building2, MapPin, Sparkles, FileText } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
-const COUNTRIES = ["Afghanistan","Albania","Algeria","Argentina","Australia","Austria","Bahrain","Bangladesh","Belgium","Brazil","Canada","Chile","China","Colombia","Czech Republic","Denmark","Egypt","Ethiopia","Finland","France","Germany","Ghana","Greece","Hungary","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Japan","Jordan","Kenya","Kuwait","Lebanon","Libya","Malaysia","Mexico","Morocco","Netherlands","New Zealand","Nigeria","Norway","Oman","Pakistan","Palestine","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Saudi Arabia","Singapore","South Africa","South Korea","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Thailand","Tunisia","Turkey","UAE","UK","Ukraine","USA","Vietnam","Yemen"];
 const NATIONALITIES = ["Afghan","Albanian","Algerian","American","Argentinian","Australian","Austrian","Bahraini","Bangladeshi","Belgian","Brazilian","British","Canadian","Chilean","Chinese","Colombian","Czech","Danish","Dutch","Egyptian","Ethiopian","Filipino","Finnish","French","German","Ghanaian","Greek","Hungarian","Indian","Indonesian","Iranian","Iraqi","Irish","Israeli","Italian","Japanese","Jordanian","Kenyan","Kuwaiti","Lebanese","Libyan","Malaysian","Mexican","Moroccan","New Zealander","Nigerian","Norwegian","Omani","Pakistani","Palestinian","Peruvian","Polish","Portuguese","Qatari","Romanian","Russian","Saudi","Singaporean","South African","South Korean","Spanish","Sri Lankan","Sudanese","Swedish","Swiss","Syrian","Taiwanese","Thai","Tunisian","Turkish","Emirati","Ukrainian","Vietnamese","Yemeni"];
-const CITIES_BY_COUNTRY: Record<string, string[]> = {
-  "UAE": ["Abu Dhabi","Dubai","Sharjah","Ajman","Ras Al Khaimah","Fujairah","Umm Al Quwain"],
-  "Saudi Arabia": ["Riyadh","Jeddah","Mecca","Medina","Dammam","Khobar","Dhahran","Tabuk"],
-  "Lebanon": ["Beirut","Tripoli","Sidon","Byblos","Jounieh","Zahle","Baalbek"],
-  "Egypt": ["Cairo","Alexandria","Giza","Luxor","Aswan","Hurghada","Sharm El Sheikh"],
-  "Jordan": ["Amman","Zarqa","Irbid","Aqaba","Madaba","Jerash"],
-  "Qatar": ["Doha","Al Wakrah","Al Khor","Lusail","Mesaieed"],
-  "Kuwait": ["Kuwait City","Hawalli","Salmiya","Jahra","Farwaniya"],
-  "Bahrain": ["Manama","Muharraq","Riffa","Isa Town","Hamad Town"],
-  "Oman": ["Muscat","Salalah","Sohar","Nizwa","Sur"],
-  "Iraq": ["Baghdad","Erbil","Basra","Sulaymaniyah","Mosul","Najaf","Karbala"],
-  "USA": ["New York","Los Angeles","Chicago","Houston","Phoenix","Philadelphia","San Francisco","Miami","Seattle","Boston"],
-  "UK": ["London","Manchester","Birmingham","Leeds","Glasgow","Liverpool","Edinburgh","Bristol"],
-  "France": ["Paris","Marseille","Lyon","Toulouse","Nice","Nantes","Strasbourg"],
-  "Germany": ["Berlin","Munich","Hamburg","Frankfurt","Cologne","Stuttgart","Dusseldorf"],
-  "Canada": ["Toronto","Montreal","Vancouver","Calgary","Ottawa","Edmonton"],
-  "Australia": ["Sydney","Melbourne","Brisbane","Perth","Adelaide","Canberra"],
-  "India": ["Mumbai","Delhi","Bangalore","Chennai","Kolkata","Hyderabad","Pune"],
-};
 
 const DAYS_EN = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
@@ -74,10 +55,12 @@ export default function Profile() {
         <Tabs defaultValue="personal">
           <TabsList className="mb-6">
             <TabsTrigger value="personal" className="gap-2"><User className="h-4 w-4" /> {t("profile.personalInfo")}</TabsTrigger>
+            {isProfessional && <TabsTrigger value="portfolio" className="gap-2"><FileText className="h-4 w-4" /> Portfolio</TabsTrigger>}
             {isProfessional && <TabsTrigger value="professions" className="gap-2"><Briefcase className="h-4 w-4" /> {t("profile.myServices")}</TabsTrigger>}
             {isProfessional && <TabsTrigger value="availability" className="gap-2"><Clock className="h-4 w-4" /> {t("profile.availability")}</TabsTrigger>}
           </TabsList>
           <TabsContent value="personal"><PersonalInfoForm /></TabsContent>
+          {isProfessional && <TabsContent value="portfolio"><PortfolioEditor /></TabsContent>}
           {isProfessional && <TabsContent value="professions"><ProfessionsManager days={DAYS} /></TabsContent>}
           {isProfessional && <TabsContent value="availability"><AvailabilityManager days={DAYS} /></TabsContent>}
         </Tabs>
@@ -111,6 +94,18 @@ function PersonalInfoForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Validate required fields
+    if (!form.firstName.trim()) { toast.error("First Name is required"); return; }
+    if (!form.lastName.trim()) { toast.error("Last Name is required"); return; }
+    if (!form.phone.trim()) { toast.error("Phone is required"); return; }
+    if (!form.nationality) { toast.error("Nationality is required"); return; }
+    if (!form.country) { toast.error("Country is required"); return; }
+    if (!form.city) { toast.error("City is required"); return; }
+    // Validate phone format (must start with + and have digits)
+    if (!/^\+\d{1,4}\d{4,}$/.test(form.phone.replace(/[\s-]/g, ""))) {
+      toast.error("Phone must be in international format (e.g. +961 1234567)");
+      return;
+    }
     const data: any = { ...form };
     if (data.sex === "unset" || !data.sex) { delete data.sex; }
     if (!data.dateOfBirth) delete data.dateOfBirth;
@@ -137,16 +132,16 @@ function PersonalInfoForm() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <Label className="text-sm font-semibold">{t("profile.firstName")}</Label>
-          <Input value={form.firstName} onChange={(e) => setForm(f => ({ ...f, firstName: e.target.value }))} className="mt-1.5 rounded-lg h-11" />
+          <Label className="text-sm font-semibold">{t("profile.firstName")} <span className="text-destructive">*</span></Label>
+          <Input value={form.firstName} onChange={(e) => setForm(f => ({ ...f, firstName: e.target.value }))} className="mt-1.5 rounded-lg h-11" required />
         </div>
         <div>
-          <Label className="text-sm font-semibold">{t("profile.lastName")}</Label>
-          <Input value={form.lastName} onChange={(e) => setForm(f => ({ ...f, lastName: e.target.value }))} className="mt-1.5 rounded-lg h-11" />
+          <Label className="text-sm font-semibold">{t("profile.lastName")} <span className="text-destructive">*</span></Label>
+          <Input value={form.lastName} onChange={(e) => setForm(f => ({ ...f, lastName: e.target.value }))} className="mt-1.5 rounded-lg h-11" required />
         </div>
-        <div>
-          <Label className="text-sm font-semibold">{t("profile.phone")}</Label>
-          <Input value={form.phone} onChange={(e) => setForm(f => ({ ...f, phone: e.target.value }))} className="mt-1.5 rounded-lg h-11" />
+        <div className="md:col-span-2">
+          <Label className="text-sm font-semibold">{t("profile.phone")} <span className="text-destructive">*</span></Label>
+          <PhoneInput value={form.phone} onChange={(v) => setForm(f => ({ ...f, phone: v }))} className="mt-1.5" />
         </div>
         <div>
           <Label className="text-sm font-semibold">{t("profile.gender")}</Label>
@@ -164,7 +159,7 @@ function PersonalInfoForm() {
           <Input type="date" value={form.dateOfBirth} onChange={(e) => setForm(f => ({ ...f, dateOfBirth: e.target.value }))} className="mt-1.5 rounded-lg h-11" />
         </div>
         <div>
-          <Label className="text-sm font-semibold">{t("profile.nationality")}</Label>
+          <Label className="text-sm font-semibold">{t("profile.nationality")} <span className="text-destructive">*</span></Label>
           <Select value={form.nationality || "unset"} onValueChange={(v) => setForm(f => ({ ...f, nationality: v === "unset" ? "" : v }))}>
             <SelectTrigger className="mt-1.5 rounded-lg h-11"><SelectValue placeholder={t("profile.select")} /></SelectTrigger>
             <SelectContent>
@@ -174,28 +169,12 @@ function PersonalInfoForm() {
           </Select>
         </div>
         <div>
-          <Label className="text-sm font-semibold">{t("profile.country")}</Label>
-          <Select value={form.country || "unset"} onValueChange={(v) => setForm(f => ({ ...f, country: v === "unset" ? "" : v }))}>
-            <SelectTrigger className="mt-1.5 rounded-lg h-11"><SelectValue placeholder={t("profile.select")} /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unset">—</SelectItem>
-              {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <Label className="text-sm font-semibold">{t("profile.country")} <span className="text-destructive">*</span></Label>
+          <CountrySelect value={form.country} onChange={(v) => setForm(f => ({ ...f, country: v, city: "" }))} className="mt-1.5" />
         </div>
         <div>
-          <Label className="text-sm font-semibold">{t("profile.city")}</Label>
-          {form.country && CITIES_BY_COUNTRY[form.country] ? (
-            <Select value={form.city || "unset"} onValueChange={(v) => setForm(f => ({ ...f, city: v === "unset" ? "" : v }))}>
-              <SelectTrigger className="mt-1.5 rounded-lg h-11"><SelectValue placeholder={t("profile.select")} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unset">—</SelectItem>
-                {CITIES_BY_COUNTRY[form.country].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Input value={form.city} onChange={(e) => setForm(f => ({ ...f, city: e.target.value }))} placeholder={t("profile.cityPlaceholder")} className="mt-1.5 rounded-lg h-11" />
-          )}
+          <Label className="text-sm font-semibold">{t("profile.city")} <span className="text-destructive">*</span></Label>
+          <CitySelect country={form.country} value={form.city} onChange={(v) => setForm(f => ({ ...f, city: v }))} className="mt-1.5" />
         </div>
       </div>
       <div>
@@ -207,6 +186,80 @@ function PersonalInfoForm() {
       </Button>
     </form>
   );
+}
+
+function PortfolioEditor() {
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  const utils = trpc.useUtils();
+  const [portfolio, setPortfolio] = useState((user as any)?.portfolio || "");
+
+  const updateMutation = trpc.profile.update.useMutation({
+    onSuccess: () => { toast.success(t("profile.saved")); utils.auth.me.invalidate(); },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const handleSave = () => {
+    updateMutation.mutate({ portfolio });
+  };
+
+  return (
+    <div className="bg-card border border-border/60 rounded-2xl p-8 max-w-3xl shadow-sm">
+      <div className="flex items-center gap-3 mb-4">
+        <FileText className="h-5 w-5 text-primary" />
+        <h3 className="font-serif font-bold text-lg">Portfolio</h3>
+      </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Write about your work experience, projects, achievements, and skills. This will be visible to customers viewing your profile. You can use formatting like **bold**, *italic*, lists, and links.
+      </p>
+
+      {/* Formatting toolbar hints */}
+      <div className="flex flex-wrap gap-2 mb-3 text-xs text-muted-foreground">
+        <span className="bg-muted px-2 py-1 rounded">**bold**</span>
+        <span className="bg-muted px-2 py-1 rounded">*italic*</span>
+        <span className="bg-muted px-2 py-1 rounded">- list item</span>
+        <span className="bg-muted px-2 py-1 rounded">[link](url)</span>
+        <span className="bg-muted px-2 py-1 rounded">## Heading</span>
+      </div>
+
+      <Textarea
+        value={portfolio}
+        onChange={(e) => setPortfolio(e.target.value)}
+        rows={16}
+        className="rounded-lg font-mono text-sm"
+        placeholder="## About Me&#10;&#10;I am a professional with 10+ years of experience in...&#10;&#10;## Projects&#10;&#10;- **Project A**: Description of the project&#10;- **Project B**: Another great project&#10;&#10;## Skills&#10;&#10;- Skill 1&#10;- Skill 2"
+      />
+
+      {/* Preview */}
+      {portfolio && (
+        <div className="mt-4 border border-border/60 rounded-xl p-5 bg-muted/20">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Preview</h4>
+          <div className="prose prose-sm max-w-none dark:prose-invert" dangerouslySetInnerHTML={{ __html: simpleMarkdown(portfolio) }} />
+        </div>
+      )}
+
+      <Button onClick={handleSave} size="lg" className="gap-2.5 rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-lg shadow-primary/20 px-8 h-12 mt-6" disabled={updateMutation.isPending}>
+        <Save className="h-5 w-5" /> {updateMutation.isPending ? t("profile.saving") : t("profile.saveChanges")}
+      </Button>
+    </div>
+  );
+}
+
+// Simple markdown renderer for portfolio preview
+function simpleMarkdown(text: string): string {
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline">$1</a>')
+    .replace(/^- (.+)$/gm, "<li>$1</li>")
+    .replace(/(<li>[\s\S]*<\/li>)/g, "<ul>$1</ul>")
+    .replace(/<\/ul>\s*<ul>/g, "")
+    .replace(/\n\n/g, "<br/><br/>")
+    .replace(/\n/g, "<br/>");
 }
 
 function ProfessionsManager({ days }: { days: string[] }) {
@@ -234,8 +287,6 @@ function ProfessionsManager({ days }: { days: string[] }) {
   });
 
   const filteredServices = useMemo(() => allServices?.filter((s: any) => s.categoryId === newProf.categoryId && !s.isBlocked) || [], [allServices, newProf.categoryId]);
-  const cities = CITIES_BY_COUNTRY[newProf.country] || [];
-  const officeCities = CITIES_BY_COUNTRY[newProf.officeCountry] || [];
 
   const handleAdd = () => {
     if (!newProf.categoryId || !newProf.serviceId) { toast.error(t("profile.selectCatAndService")); return; }
@@ -293,27 +344,11 @@ function ProfessionsManager({ days }: { days: string[] }) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-xs">{t("profile.country")} *</Label>
-                    <Select value={newProf.country || "unset"} onValueChange={(v) => setNewProf(f => ({ ...f, country: v === "unset" ? "" : v, city: "" }))}>
-                      <SelectTrigger className="mt-1 rounded-lg"><SelectValue placeholder={t("profile.select")} /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unset">—</SelectItem>
-                        {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <CountrySelect value={newProf.country} onChange={(v) => setNewProf(f => ({ ...f, country: v, city: "" }))} className="mt-1" />
                   </div>
                   <div>
                     <Label className="text-xs">{t("profile.city")}</Label>
-                    {cities.length > 0 ? (
-                      <Select value={newProf.city || "unset"} onValueChange={(v) => setNewProf(f => ({ ...f, city: v === "unset" ? "" : v }))}>
-                        <SelectTrigger className="mt-1 rounded-lg"><SelectValue placeholder={t("profile.select")} /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unset">—</SelectItem>
-                          {cities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input value={newProf.city} onChange={(e) => setNewProf(f => ({ ...f, city: e.target.value }))} className="mt-1 rounded-lg" placeholder={t("profile.cityPlaceholder")} />
-                    )}
+                    <CitySelect country={newProf.country} value={newProf.city} onChange={(v) => setNewProf(f => ({ ...f, city: v }))} className="mt-1" />
                   </div>
                 </div>
               </div>
@@ -337,21 +372,11 @@ function ProfessionsManager({ days }: { days: string[] }) {
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label className="text-xs">{t("profile.officeCountry")}</Label>
-                        <Select value={newProf.officeCountry || "unset"} onValueChange={(v) => setNewProf(f => ({ ...f, officeCountry: v === "unset" ? "" : v, officeCity: "" }))}>
-                          <SelectTrigger className="mt-1 rounded-lg"><SelectValue /></SelectTrigger>
-                          <SelectContent><SelectItem value="unset">—</SelectItem>{COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                        </Select>
+                        <CountrySelect value={newProf.officeCountry} onChange={(v) => setNewProf(f => ({ ...f, officeCountry: v, officeCity: "" }))} className="mt-1" />
                       </div>
                       <div>
                         <Label className="text-xs">{t("profile.officeCity")}</Label>
-                        {officeCities.length > 0 ? (
-                          <Select value={newProf.officeCity || "unset"} onValueChange={(v) => setNewProf(f => ({ ...f, officeCity: v === "unset" ? "" : v }))}>
-                            <SelectTrigger className="mt-1 rounded-lg"><SelectValue /></SelectTrigger>
-                            <SelectContent><SelectItem value="unset">—</SelectItem>{officeCities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                          </Select>
-                        ) : (
-                          <Input value={newProf.officeCity} onChange={(e) => setNewProf(f => ({ ...f, officeCity: e.target.value }))} className="mt-1 rounded-lg" />
-                        )}
+                        <CitySelect country={newProf.officeCountry} value={newProf.officeCity} onChange={(v) => setNewProf(f => ({ ...f, officeCity: v }))} className="mt-1" />
                       </div>
                     </div>
                   </div>
@@ -359,7 +384,10 @@ function ProfessionsManager({ days }: { days: string[] }) {
               </div>
 
               <div><Label className="text-sm font-semibold">{t("profile.geographicAreas")}</Label><Input value={newProf.geographicAreas} onChange={(e) => setNewProf(f => ({ ...f, geographicAreas: e.target.value }))} className="mt-1.5 rounded-lg" placeholder="New York, Los Angeles" /></div>
-              <Button onClick={handleAdd} size="lg" className="w-full rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90" disabled={addMutation.isPending}>{addMutation.isPending ? t("profile.adding") : t("profile.addService")}</Button>
+              <Button onClick={handleAdd} size="lg" className="w-full rounded-full bg-gradient-to-r from-[#4A9B82] to-[#2D6D5F] hover:opacity-90 shadow-lg shadow-primary/20 h-12" disabled={addMutation.isPending}>
+                {addMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                {addMutation.isPending ? t("profile.saving") : t("profile.addService")}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

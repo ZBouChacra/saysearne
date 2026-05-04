@@ -19,6 +19,7 @@ export const users = mysqlTable("users", {
   profilePhoto: text("profilePhoto"),
   bannerPhoto: text("bannerPhoto"),
   bio: text("bio"),
+  portfolio: text("portfolio"), // rich text portfolio for professionals
   preferredLanguage: mysqlEnum("preferredLanguage", ["en", "ar"]).default("en"),
   isLocked: boolean("isLocked").default(false).notNull(),
   isPremium: boolean("isPremium").default(false).notNull(),
@@ -160,6 +161,7 @@ export const advertisements = mysqlTable("advertisements", {
   country: varchar("country", { length: 100 }),
   city: varchar("city", { length: 100 }),
   isActive: boolean("isActive").default(true).notNull(),
+  isLocked: boolean("isLocked").default(false).notNull(),
   startDate: timestamp("startDate"),
   endDate: timestamp("endDate"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -213,8 +215,7 @@ export const premiumBatches = mysqlTable("premium_batches", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   country: varchar("country", { length: 100 }),
-  startDate: timestamp("startDate").notNull(),
-  endDate: timestamp("endDate").notNull(),
+  selectedDates: json("selectedDates").notNull(), // JSON array of date strings ["2025-01-01","2025-01-03",...]
   feePerDay: decimal("feePerDay", { precision: 10, scale: 2 }).notNull(),
   totalDays: int("totalDays").notNull(),
   totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
@@ -230,8 +231,7 @@ export const adBatches = mysqlTable("ad_batches", {
   id: int("id").autoincrement().primaryKey(),
   advertisementId: int("advertisementId").notNull(),
   country: varchar("country", { length: 100 }),
-  startDate: timestamp("startDate").notNull(),
-  endDate: timestamp("endDate").notNull(),
+  selectedDates: json("selectedDates").notNull(), // JSON array of date strings
   feePerDay: decimal("feePerDay", { precision: 10, scale: 2 }).notNull(),
   totalDays: int("totalDays").notNull(),
   totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),

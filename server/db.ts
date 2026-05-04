@@ -598,15 +598,18 @@ export async function deleteListingOrderConfig(id: number) {
 }
 
 // Premium Batches
-export async function createPremiumBatch(data: { userId: number; country?: string; startDate: Date; endDate: Date; feePerDay: string; totalDays: number; totalAmount: string; notes?: string }) {
+export async function createPremiumBatch(data: { userId: number; country?: string; selectedDates: string[]; feePerDay: string; totalDays: number; totalAmount: string; notes?: string }) {
   const db = await getDb(); if (!db) return null;
-  const result = await db.insert(premiumBatches).values(data as any);
+  const result = await db.insert(premiumBatches).values({ ...data, selectedDates: data.selectedDates } as any);
   return result[0].insertId;
 }
 
-export async function getPremiumBatchesByUser(userId: number) {
-  const db = await getDb(); if (!db) return [];
-  return db.select().from(premiumBatches).where(eq(premiumBatches.userId, userId)).orderBy(desc(premiumBatches.createdAt));
+export async function getPremiumBatchesByUser(userId: number, page = 1, limit = 10) {
+  const db = await getDb(); if (!db) return { results: [], total: 0 };
+  const offset = (page - 1) * limit;
+  const results = await db.select().from(premiumBatches).where(eq(premiumBatches.userId, userId)).orderBy(desc(premiumBatches.createdAt)).limit(limit).offset(offset);
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(premiumBatches).where(eq(premiumBatches.userId, userId));
+  return { results, total: countResult?.count || 0 };
 }
 
 export async function getAllPremiumBatches() {
@@ -625,29 +628,57 @@ export async function getPremiumBatchById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// Count active/pending premium batches for a given date and country
-export async function countPremiumBatchesForDate(date: Date, country?: string) {
+// Count active/pending premium batches for a given date string and country
+export async function countPremiumBatchesForDate(dateStr: string, country?: string) {
   const db = await getDb(); if (!db) return 0;
   const conditions: any[] = [
     or(eq(premiumBatches.status, 'pending'), eq(premiumBatches.status, 'paid'), eq(premiumBatches.status, 'active')),
-    lte(premiumBatches.startDate, date),
-    gte(premiumBatches.endDate, date),
+    sql`JSON_CONTAINS(${premiumBatches.selectedDates}, JSON_QUOTE(${dateStr}))`,
   ];
   if (country) conditions.push(eq(premiumBatches.country, country));
   const result = await db.select({ count: sql<number>`count(*)` }).from(premiumBatches).where(and(...conditions));
   return result[0]?.count || 0;
 }
 
+// Check if user has active premium batch for today
+export async function isUserPremiumToday(userId: number): Promise<boolean> {
+  const db = await getDb(); if (!db) return false;
+  const today = new Date().toISOString().split('T')[0];
+  const result = await db.select({ count: sql<number>`count(*)` }).from(premiumBatches)
+    .where(and(
+      eq(premiumBatches.userId, userId),
+      or(eq(premiumBatches.status, 'paid'), eq(premiumBatches.status, 'active')),
+      sql`JSON_CONTAINS(${premiumBatches.selectedDates}, JSON_QUOTE(${today}))`,
+    ));
+  return (result[0]?.count || 0) > 0;
+}
+
+// Check if ad has active batch for today
+export async function isAdActiveToday(adId: number): Promise<boolean> {
+  const db = await getDb(); if (!db) return false;
+  const today = new Date().toISOString().split('T')[0];
+  const result = await db.select({ count: sql<number>`count(*)` }).from(adBatches)
+    .where(and(
+      eq(adBatches.advertisementId, adId),
+      or(eq(adBatches.status, 'paid'), eq(adBatches.status, 'active')),
+      sql`JSON_CONTAINS(${adBatches.selectedDates}, JSON_QUOTE(${today}))`,
+    ));
+  return (result[0]?.count || 0) > 0;
+}
+
 // Ad Batches
-export async function createAdBatch(data: { advertisementId: number; country?: string; startDate: Date; endDate: Date; feePerDay: string; totalDays: number; totalAmount: string; notes?: string }) {
+export async function createAdBatch(data: { advertisementId: number; country?: string; selectedDates: string[]; feePerDay: string; totalDays: number; totalAmount: string; notes?: string }) {
   const db = await getDb(); if (!db) return null;
-  const result = await db.insert(adBatches).values(data as any);
+  const result = await db.insert(adBatches).values({ ...data, selectedDates: data.selectedDates } as any);
   return result[0].insertId;
 }
 
-export async function getAdBatchesByAd(advertisementId: number) {
-  const db = await getDb(); if (!db) return [];
-  return db.select().from(adBatches).where(eq(adBatches.advertisementId, advertisementId)).orderBy(desc(adBatches.createdAt));
+export async function getAdBatchesByAd(advertisementId: number, page = 1, limit = 10) {
+  const db = await getDb(); if (!db) return { results: [], total: 0 };
+  const offset = (page - 1) * limit;
+  const results = await db.select().from(adBatches).where(eq(adBatches.advertisementId, advertisementId)).orderBy(desc(adBatches.createdAt)).limit(limit).offset(offset);
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(adBatches).where(eq(adBatches.advertisementId, advertisementId));
+  return { results, total: countResult?.count || 0 };
 }
 
 export async function getAllAdBatches() {
@@ -666,12 +697,11 @@ export async function getAdBatchById(id: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function countAdBatchesForDate(date: Date, country?: string) {
+export async function countAdBatchesForDate(dateStr: string, country?: string) {
   const db = await getDb(); if (!db) return 0;
   const conditions: any[] = [
     or(eq(adBatches.status, 'pending'), eq(adBatches.status, 'paid'), eq(adBatches.status, 'active')),
-    lte(adBatches.startDate, date),
-    gte(adBatches.endDate, date),
+    sql`JSON_CONTAINS(${adBatches.selectedDates}, JSON_QUOTE(${dateStr}))`,
   ];
   if (country) conditions.push(eq(adBatches.country, country));
   const result = await db.select({ count: sql<number>`count(*)` }).from(adBatches).where(and(...conditions));
@@ -688,25 +718,25 @@ export async function getAllBatchesForPayments(year?: number, month?: number) {
   if (year && month) {
     const startOfMonth = new Date(year, month - 1, 1);
     const endOfMonth = new Date(year, month, 0, 23, 59, 59);
-    premConditions.push(gte(premiumBatches.startDate, startOfMonth));
-    premConditions.push(lte(premiumBatches.startDate, endOfMonth));
-    adConditions.push(gte(adBatches.startDate, startOfMonth));
-    adConditions.push(lte(adBatches.startDate, endOfMonth));
+    premConditions.push(gte(premiumBatches.createdAt, startOfMonth));
+    premConditions.push(lte(premiumBatches.createdAt, endOfMonth));
+    adConditions.push(gte(adBatches.createdAt, startOfMonth));
+    adConditions.push(lte(adBatches.createdAt, endOfMonth));
   }
 
   const premResults = premConditions.length > 0
-    ? await db.select().from(premiumBatches).where(and(...premConditions)).orderBy(asc(premiumBatches.startDate))
-    : await db.select().from(premiumBatches).orderBy(asc(premiumBatches.startDate));
+    ? await db.select().from(premiumBatches).where(and(...premConditions)).orderBy(desc(premiumBatches.createdAt))
+    : await db.select().from(premiumBatches).orderBy(desc(premiumBatches.createdAt));
 
   const adResults = adConditions.length > 0
-    ? await db.select().from(adBatches).where(and(...adConditions)).orderBy(asc(adBatches.startDate))
-    : await db.select().from(adBatches).orderBy(asc(adBatches.startDate));
+    ? await db.select().from(adBatches).where(and(...adConditions)).orderBy(desc(adBatches.createdAt))
+    : await db.select().from(adBatches).orderBy(desc(adBatches.createdAt));
 
   return { premiumBatches: premResults, adBatches: adResults };
 }
 
 // Admin
-export async function getAllUsers(page = 1, limit = 20, search?: string, typeFilter?: string) {
+export async function getAllUsers(page = 1, limit = 20, search?: string, typeFilter?: string, premiumOnly?: boolean) {
   const db = await getDb(); if (!db) return { results: [], total: 0 };
   const offset = (page - 1) * limit;
   const conditions: any[] = [];
@@ -719,6 +749,9 @@ export async function getAllUsers(page = 1, limit = 20, search?: string, typeFil
   }
   if (typeFilter && typeFilter !== 'all') {
     conditions.push(eq(users.profileType, typeFilter as any));
+  }
+  if (premiumOnly) {
+    conditions.push(eq(users.isPremium, true));
   }
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
   const results = whereClause

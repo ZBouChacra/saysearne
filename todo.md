@@ -188,3 +188,34 @@
 - [x] 12. Fix: ziad.bouchacra@gmail.com found as both User and Admin (duplicate) - added unique index on openId, deleted 117 ghost users
 - [x] 13. Fix: when accessing admin/users, empty users are being created - fixed by adding unique constraint on openId
 - [x] 14. Fix: Chat count always shows 0 (not getting real unread count) - optimized query with single SQL join
+
+## Feedback Round 8
+- [x] R8-1. All city fields should be dropdowns not text boxes
+- [x] R8-2. Professional portfolio: multitext with formatted text, visible on profile
+- [x] R8-3. Profile required fields: First Name, Last Name, Phone, Nationality, Country, City
+- [x] R8-4. Profile city should be dropdown
+- [x] R8-5. Profile phone: international format with country extension dropdown + flag
+- [x] R8-6. Country dropdown should be configured (not free text)
+- [x] R8-7. Admin/Users: Remove starred from grid and profile
+- [x] R8-8. Admin/Users/User: Show city
+- [x] R8-9. Admin/Users/User: Show Bio
+- [x] R8-10. Admin/Users/User: Show portfolio
+- [x] R8-11. Admin/Users/User: Remove Professional Fee section
+- [x] R8-12. Premium Batch: select dates freely (non-consecutive), not a range
+- [x] R8-13. Premium Batch: edit/cancel pending batches, always visible
+- [x] R8-14. Admin/Users/User: Premium Batches and Appointments listed 10 per page with pagination, new to old
+- [x] R8-15. Admin/Users: search by current premium users
+- [x] R8-16. Admin/Users: if current day not in batch, user not flagged as premium
+- [x] R8-17. Admin/Categories: Icon should be downloadable image with fixed height/width
+- [x] R8-18. Admin/Advertisement: batch config inside the ad object, not outside
+- [x] R8-19. Ad Batch: select dates freely (non-consecutive), not a range
+- [x] R8-20. Ad Batch: edit/cancel pending batches, always visible
+- [x] R8-21. Ad Batch: listed 10 per page with pagination, new to old
+- [x] R8-22. Admin/Advertisement: Country and City should be dropdowns
+- [x] R8-23. Admin/Advertisement: All fields mandatory
+- [x] R8-24. Admin/Advertisement: replace delete with lock/unlock (locked hides even if enabled)
+- [x] R8-25. Admin/Advertisement: if current day not in batch, should not be enabled
+- [x] R8-26. Admin/Advertisement: search by current enabled ads
+- [x] R8-27. Admin/Chat: search by date and users
+- [x] R8-28. Admin/Config: Country should be dropdown not free text
+- [x] R8-29. Fix: chat always dragging down (scroll issue)
