@@ -146,27 +146,98 @@ const PHONE_CODES: { country: string; code: string; flag: string }[] = [
   { country: "Zimbabwe", code: "+263", flag: "🇿🇼" },
 ];
 
-// City data per country
+// City data per country - comprehensive list
 const CITIES: Record<string, string[]> = {
-  "Lebanon": ["Beirut","Tripoli","Sidon","Tyre","Jounieh","Zahle","Baalbek","Byblos","Aley","Batroun","Nabatieh","Bcharre","Broummana","Ehden","Jbeil"],
-  "United Arab Emirates": ["Abu Dhabi","Dubai","Sharjah","Ajman","Ras Al Khaimah","Fujairah","Umm Al Quwain","Al Ain"],
-  "Saudi Arabia": ["Riyadh","Jeddah","Mecca","Medina","Dammam","Khobar","Dhahran","Tabuk","Abha","Taif","Hail","Najran","Jubail","Yanbu"],
-  "Egypt": ["Cairo","Alexandria","Giza","Sharm El Sheikh","Luxor","Aswan","Hurghada","Port Said","Suez","Mansoura","Tanta","Ismailia"],
-  "Jordan": ["Amman","Zarqa","Irbid","Aqaba","Madaba","Jerash","Salt","Mafraq","Karak","Ajloun"],
-  "Iraq": ["Baghdad","Basra","Erbil","Sulaymaniyah","Mosul","Kirkuk","Najaf","Karbala","Duhok","Nasiriyah"],
-  "Kuwait": ["Kuwait City","Hawalli","Salmiya","Farwaniya","Jahra","Ahmadi","Mangaf","Fahaheel"],
-  "Qatar": ["Doha","Al Wakrah","Al Khor","Lusail","Dukhan","Mesaieed","Al Rayyan"],
+  "Afghanistan": ["Kabul","Kandahar","Herat","Mazar-i-Sharif","Jalalabad"],
+  "Albania": ["Tirana","Durres","Vlore","Elbasan","Shkoder"],
+  "Algeria": ["Algiers","Oran","Constantine","Annaba","Blida"],
+  "Argentina": ["Buenos Aires","Cordoba","Rosario","Mendoza","La Plata"],
+  "Armenia": ["Yerevan","Gyumri","Vanadzor"],
+  "Australia": ["Sydney","Melbourne","Brisbane","Perth","Adelaide","Canberra"],
+  "Austria": ["Vienna","Graz","Linz","Salzburg","Innsbruck"],
+  "Azerbaijan": ["Baku","Ganja","Sumgait"],
   "Bahrain": ["Manama","Muharraq","Riffa","Hamad Town","Isa Town","Sitra","Budaiya","Jidhafs"],
-  "Oman": ["Muscat","Salalah","Sohar","Nizwa","Sur","Ibri","Barka","Rustaq","Seeb"],
-  "Syria": ["Damascus","Aleppo","Homs","Latakia","Hama","Tartus","Deir ez-Zor","Raqqa","Idlib","Daraa"],
-  "Palestine": ["Ramallah","Gaza","Nablus","Hebron","Bethlehem","Jenin","Tulkarm","Jericho","Qalqilya"],
-  "France": ["Paris","Marseille","Lyon","Toulouse","Nice","Nantes","Strasbourg","Montpellier","Bordeaux","Lille"],
-  "Germany": ["Berlin","Munich","Hamburg","Frankfurt","Cologne","Stuttgart","Dusseldorf","Leipzig","Dortmund","Essen"],
-  "United Kingdom": ["London","Manchester","Birmingham","Leeds","Glasgow","Liverpool","Edinburgh","Bristol","Sheffield","Cardiff"],
-  "United States": ["New York","Los Angeles","Chicago","Houston","Phoenix","Philadelphia","San Antonio","San Diego","Dallas","San Jose"],
+  "Bangladesh": ["Dhaka","Chittagong","Khulna","Rajshahi","Sylhet"],
+  "Belgium": ["Brussels","Antwerp","Ghent","Charleroi","Liege","Bruges"],
+  "Brazil": ["Sao Paulo","Rio de Janeiro","Brasilia","Salvador","Fortaleza","Belo Horizonte"],
+  "Bulgaria": ["Sofia","Plovdiv","Varna","Burgas"],
   "Canada": ["Toronto","Montreal","Vancouver","Calgary","Edmonton","Ottawa","Winnipeg","Quebec City","Hamilton","Kitchener"],
-  "Turkey": ["Istanbul","Ankara","Izmir","Bursa","Antalya","Adana","Gaziantep","Konya","Mersin","Kayseri"],
+  "Chile": ["Santiago","Valparaiso","Concepcion","Antofagasta"],
+  "China": ["Beijing","Shanghai","Guangzhou","Shenzhen","Chengdu","Hangzhou","Wuhan","Nanjing"],
+  "Colombia": ["Bogota","Medellin","Cali","Barranquilla","Cartagena"],
+  "Croatia": ["Zagreb","Split","Rijeka","Osijek"],
+  "Cuba": ["Havana","Santiago de Cuba","Camaguey"],
+  "Cyprus": ["Nicosia","Limassol","Larnaca","Paphos"],
+  "Czech Republic": ["Prague","Brno","Ostrava","Plzen"],
+  "Denmark": ["Copenhagen","Aarhus","Odense","Aalborg"],
+  "Egypt": ["Cairo","Alexandria","Giza","Sharm El Sheikh","Luxor","Aswan","Hurghada","Port Said","Suez","Mansoura","Tanta","Ismailia"],
+  "Estonia": ["Tallinn","Tartu"],
+  "Ethiopia": ["Addis Ababa","Dire Dawa","Mekelle","Gondar"],
+  "Finland": ["Helsinki","Espoo","Tampere","Turku","Oulu"],
+  "France": ["Paris","Marseille","Lyon","Toulouse","Nice","Nantes","Strasbourg","Montpellier","Bordeaux","Lille"],
+  "Georgia": ["Tbilisi","Batumi","Kutaisi"],
+  "Germany": ["Berlin","Munich","Hamburg","Frankfurt","Cologne","Stuttgart","Dusseldorf","Leipzig","Dortmund","Essen"],
+  "Ghana": ["Accra","Kumasi","Tamale","Takoradi"],
+  "Greece": ["Athens","Thessaloniki","Patras","Heraklion","Larissa"],
+  "Hungary": ["Budapest","Debrecen","Szeged","Miskolc","Pecs"],
+  "Iceland": ["Reykjavik","Kopavogur","Hafnarfjordur"],
   "India": ["Mumbai","Delhi","Bangalore","Hyderabad","Chennai","Kolkata","Pune","Ahmedabad","Jaipur","Lucknow"],
+  "Indonesia": ["Jakarta","Surabaya","Bandung","Medan","Semarang","Bali"],
+  "Iran": ["Tehran","Isfahan","Mashhad","Tabriz","Shiraz"],
+  "Iraq": ["Baghdad","Basra","Erbil","Sulaymaniyah","Mosul","Kirkuk","Najaf","Karbala","Duhok","Nasiriyah"],
+  "Ireland": ["Dublin","Cork","Limerick","Galway","Waterford"],
+  "Israel": ["Tel Aviv","Jerusalem","Haifa","Beersheba","Netanya"],
+  "Italy": ["Rome","Milan","Naples","Turin","Florence","Bologna","Venice","Genoa"],
+  "Japan": ["Tokyo","Osaka","Yokohama","Nagoya","Sapporo","Kobe","Kyoto","Fukuoka"],
+  "Jordan": ["Amman","Zarqa","Irbid","Aqaba","Madaba","Jerash","Salt","Mafraq","Karak","Ajloun"],
+  "Kazakhstan": ["Almaty","Nur-Sultan","Shymkent","Karaganda"],
+  "Kenya": ["Nairobi","Mombasa","Kisumu","Nakuru","Eldoret"],
+  "Kuwait": ["Kuwait City","Hawalli","Salmiya","Farwaniya","Jahra","Ahmadi","Mangaf","Fahaheel"],
+  "Latvia": ["Riga","Daugavpils","Liepaja"],
+  "Lebanon": ["Beirut","Tripoli","Sidon","Tyre","Jounieh","Zahle","Baalbek","Byblos","Aley","Batroun","Nabatieh","Bcharre","Broummana","Ehden","Jbeil"],
+  "Libya": ["Tripoli","Benghazi","Misrata","Sebha"],
+  "Lithuania": ["Vilnius","Kaunas","Klaipeda"],
+  "Malaysia": ["Kuala Lumpur","George Town","Johor Bahru","Ipoh","Shah Alam","Kota Kinabalu"],
+  "Mexico": ["Mexico City","Guadalajara","Monterrey","Puebla","Cancun","Tijuana"],
+  "Morocco": ["Casablanca","Rabat","Marrakech","Fes","Tangier","Agadir"],
+  "Netherlands": ["Amsterdam","Rotterdam","The Hague","Utrecht","Eindhoven"],
+  "New Zealand": ["Auckland","Wellington","Christchurch","Hamilton","Dunedin"],
+  "Nigeria": ["Lagos","Abuja","Kano","Ibadan","Port Harcourt"],
+  "Norway": ["Oslo","Bergen","Trondheim","Stavanger"],
+  "Oman": ["Muscat","Salalah","Sohar","Nizwa","Sur","Ibri","Barka","Rustaq","Seeb"],
+  "Pakistan": ["Karachi","Lahore","Islamabad","Rawalpindi","Faisalabad","Peshawar"],
+  "Palestine": ["Ramallah","Gaza","Nablus","Hebron","Bethlehem","Jenin","Tulkarm","Jericho","Qalqilya"],
+  "Peru": ["Lima","Arequipa","Cusco","Trujillo"],
+  "Philippines": ["Manila","Quezon City","Davao","Cebu","Makati"],
+  "Poland": ["Warsaw","Krakow","Wroclaw","Gdansk","Poznan","Lodz"],
+  "Portugal": ["Lisbon","Porto","Braga","Coimbra","Faro"],
+  "Qatar": ["Doha","Al Wakrah","Al Khor","Lusail","Dukhan","Mesaieed","Al Rayyan"],
+  "Romania": ["Bucharest","Cluj-Napoca","Timisoara","Iasi","Constanta"],
+  "Russia": ["Moscow","Saint Petersburg","Novosibirsk","Yekaterinburg","Kazan"],
+  "Saudi Arabia": ["Riyadh","Jeddah","Mecca","Medina","Dammam","Khobar","Dhahran","Tabuk","Abha","Taif","Hail","Najran","Jubail","Yanbu"],
+  "Senegal": ["Dakar","Thies","Saint-Louis"],
+  "Serbia": ["Belgrade","Novi Sad","Nis"],
+  "Singapore": ["Singapore"],
+  "South Africa": ["Johannesburg","Cape Town","Durban","Pretoria","Port Elizabeth"],
+  "South Korea": ["Seoul","Busan","Incheon","Daegu","Daejeon","Gwangju"],
+  "Spain": ["Madrid","Barcelona","Valencia","Seville","Malaga","Bilbao"],
+  "Sri Lanka": ["Colombo","Kandy","Galle","Jaffna"],
+  "Sudan": ["Khartoum","Omdurman","Port Sudan"],
+  "Sweden": ["Stockholm","Gothenburg","Malmo","Uppsala"],
+  "Switzerland": ["Zurich","Geneva","Basel","Bern","Lausanne"],
+  "Syria": ["Damascus","Aleppo","Homs","Latakia","Hama","Tartus","Deir ez-Zor","Raqqa","Idlib","Daraa"],
+  "Taiwan": ["Taipei","Kaohsiung","Taichung","Tainan"],
+  "Thailand": ["Bangkok","Chiang Mai","Phuket","Pattaya","Nonthaburi"],
+  "Tunisia": ["Tunis","Sfax","Sousse","Kairouan"],
+  "Turkey": ["Istanbul","Ankara","Izmir","Bursa","Antalya","Adana","Gaziantep","Konya","Mersin","Kayseri"],
+  "Uganda": ["Kampala","Gulu","Lira","Mbarara"],
+  "Ukraine": ["Kyiv","Kharkiv","Odesa","Dnipro","Lviv"],
+  "United Arab Emirates": ["Abu Dhabi","Dubai","Sharjah","Ajman","Ras Al Khaimah","Fujairah","Umm Al Quwain","Al Ain"],
+  "United Kingdom": ["London","Manchester","Birmingham","Leeds","Glasgow","Liverpool","Edinburgh","Bristol","Sheffield","Cardiff"],
+  "United States": ["New York","Los Angeles","Chicago","Houston","Phoenix","Philadelphia","San Antonio","San Diego","Dallas","San Jose","Miami","San Francisco","Seattle","Denver","Boston"],
+  "Venezuela": ["Caracas","Maracaibo","Valencia","Barquisimeto"],
+  "Vietnam": ["Ho Chi Minh City","Hanoi","Da Nang","Hai Phong","Can Tho"],
+  "Yemen": ["Sanaa","Aden","Taiz","Hodeidah"],
 };
 
 export { COUNTRIES, CITIES, PHONE_CODES };
@@ -203,14 +274,21 @@ interface CitySelectProps {
 export function CitySelect({ country, value, onChange, placeholder = "Select city", className = "", allowEmpty = false }: CitySelectProps) {
   const cities = CITIES[country] || [];
 
+  if (!country) {
+    return (
+      <Select value="__empty__" disabled>
+        <SelectTrigger className={`rounded-lg h-10 ${className}`}><SelectValue placeholder="Select country first" /></SelectTrigger>
+        <SelectContent><SelectItem value="__empty__">Select country first</SelectItem></SelectContent>
+      </Select>
+    );
+  }
+
   if (cities.length === 0) {
     return (
-      <Input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`rounded-lg h-10 ${className}`}
-      />
+      <Select value="__empty__" disabled>
+        <SelectTrigger className={`rounded-lg h-10 ${className}`}><SelectValue placeholder="No cities configured" /></SelectTrigger>
+        <SelectContent><SelectItem value="__empty__">No cities configured</SelectItem></SelectContent>
+      </Select>
     );
   }
 
