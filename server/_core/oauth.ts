@@ -1,152 +1,130 @@
-﻿import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import bcrypt from "bcrypt";
 import type { Express, Request, Response } from "express";
-import * as db from "../db";
+import { nanoid } from "nanoid";
+import { sdk } from "./sdk";
 import { getSessionCookieOptions } from "./cookies";
-import { verifyToken } from "./auth/jwt";
-import { hashPassword, comparePassword, validatePassword } from "./auth/password";
-import { generateOpenId } from "./auth/jwt";
-import passport from "passport";
+import * as db from "../db";
+import { ENV } from "./env";
+
+// ─── Email / Password ────────────────────────────────────────────────────────
+
+export async function registerWithEmail(
+  email: string,
+  password: string,
+  name: string
+): Promise<{ success: boolean; error?: string }> {
+  const existing = await db.getUserByEmail(email);
+  if (existing) return { success: false, error: "Email already in use" };
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  const openId = `email_${nanoid()}`;
+
+  await db.upsertUser({
+    openId,
+    email,
+    name,
+    passwordHash,
+    loginMethod: "email",
+    lastSignedIn: new Date(),
+  });
+
+  return { success: true };
+}
+
+export async function loginWithEmail(
+  email: string,
+  password: string
+): Promise<{ user: Awaited<ReturnType<typeof db.getUserByEmail>> | undefined; error?: string }> {
+  const user = await db.getUserByEmail(email);
+  if (!user || !user.passwordHash) return { user: undefined, error: "Invalid email or password" };
+
+  const valid = await bcrypt.compare(password, user.passwordHash);
+  if (!valid) return { user: undefined, error: "Invalid email or password" };
+
+  return { user };
+}
+
+// ─── Google OAuth ─────────────────────────────────────────────────────────────
 
 export function registerOAuthRoutes(app: Express) {
-    // Register with email/password
-    app.post("/api/auth/register", async (req: Request, res: Response) => {
-        try {
-            const { email, password, firstName, lastName } = req.body;
+  // Google OAuth — redirect user to Google
+  app.get("/api/oauth/google", (_req: Request, res: Response) => {
+    if (!ENV.googleClientId) {
+      res.status(500).json({ error: "Google OAuth is not configured" });
+      return;
+    }
 
-            if (!email || !password) {
-                res.status(400).json({ error: "Email and password are required" });
-                return;
-            }
-
-            const passwordCheck = validatePassword(password);
-            if (!passwordCheck.valid) {
-                res.status(400).json({ error: passwordCheck.message });
-                return;
-            }
-
-            const existingUser = await db.getUserByEmail(email);
-            if (existingUser) {
-                res.status(400).json({ error: "Email already registered" });
-                return;
-            }
-
-            const passwordHash = await hashPassword(password);
-            const openId = generateOpenId();
-
-            await db.upsertUser({
-                openId,
-                email,
-                passwordHash,
-                firstName,
-                lastName,
-                name: `${firstName || ""} ${lastName || ""}`.trim(),
-                loginMethod: "email",
-                lastSignedIn: new Date(),
-            });
-
-            const user = await db.getUserByEmail(email);
-            if (!user) {
-                res.status(500).json({ error: "Failed to create user" });
-                return;
-            }
-
-            const { generateToken } = await import("./auth/jwt");
-            const token = generateToken({
-                userId: user.id,
-                email: user.email!,
-                role: user.role,
-                openId: user.openId,
-            });
-
-            const cookieOptions = getSessionCookieOptions(req);
-            res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-            res.json({ success: true, user });
-        } catch (error) {
-            console.error("[Auth] Register failed", error);
-            res.status(500).json({ error: "Registration failed" });
-        }
+    const redirectUri = `${ENV.appUrl}/api/oauth/google/callback`;
+    const params = new URLSearchParams({
+      client_id: ENV.googleClientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "openid email profile",
+      access_type: "offline",
     });
 
-    // Login with email/password
-    app.post("/api/auth/login", async (req: Request, res: Response) => {
-        try {
-            const { email, password } = req.body;
+    res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+  });
 
-            if (!email || !password) {
-                res.status(400).json({ error: "Email and password are required" });
-                return;
-            }
+  // Google OAuth — callback after Google redirects back
+  app.get("/api/oauth/google/callback", async (req: Request, res: Response) => {
+    const code = typeof req.query.code === "string" ? req.query.code : null;
+    if (!code) {
+      res.redirect("/login?error=google_failed");
+      return;
+    }
 
-            const user = await db.getUserByEmail(email);
-            if (!user || !user.passwordHash) {
-                res.status(401).json({ error: "Invalid email or password" });
-                return;
-            }
+    try {
+      // Exchange code for tokens
+      const redirectUri = `${ENV.appUrl}/api/oauth/google/callback`;
+      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          code,
+          client_id: ENV.googleClientId,
+          client_secret: ENV.googleClientSecret,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }),
+      });
 
-            if (user.isLocked || (user.lockedUntil && user.lockedUntil > new Date())) {
-                res.status(403).json({ error: "Account is locked. Please contact support." });
-                return;
-            }
+      const tokenData = await tokenRes.json() as { access_token?: string; error?: string };
+      if (!tokenData.access_token) throw new Error("No access token from Google");
 
-            const isValid = await comparePassword(password, user.passwordHash);
-            if (!isValid) {
-                const failedAttempts = (user.failedLoginAttempts || 0) + 1;
-                const updates: any = { failedLoginAttempts: failedAttempts };
-                if (failedAttempts >= 5) {
-                    updates.isLocked = true;
-                    updates.lockedUntil = new Date(Date.now() + 30 * 60 * 1000);
-                }
-                await db.updateUserProfile(user.id, updates);
-                res.status(401).json({ error: "Invalid email or password" });
-                return;
-            }
+      // Get user info from Google
+      const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
+      const googleUser = await userInfoRes.json() as { id: string; email: string; name: string };
 
-            await db.updateUserProfile(user.id, {
-                failedLoginAttempts: 0,
-                lastSignedIn: new Date(),
-            });
+      const openId = `google_${googleUser.id}`;
 
-            const { generateToken } = await import("./auth/jwt");
-            const token = generateToken({
-                userId: user.id,
-                email: user.email!,
-                role: user.role,
-                openId: user.openId,
-            });
+      // Upsert user in DB
+      await db.upsertUser({
+        openId,
+        email: googleUser.email,
+        name: googleUser.name,
+        loginMethod: "google",
+        lastSignedIn: new Date(),
+      });
 
-            const cookieOptions = getSessionCookieOptions(req);
-            res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-            res.json({ success: true, user });
-        } catch (error) {
-            console.error("[Auth] Login failed", error);
-            res.status(500).json({ error: "Login failed" });
-        }
-    });
+      const user = await db.getUserByOpenId(openId);
+      if (!user) throw new Error("User not found after upsert");
 
-    // Google OAuth
-    app.get("/api/auth/google",
-        passport.authenticate("google", { scope: ["profile", "email"] })
-    );
+      // Create session
+      const sessionToken = await sdk.createSessionToken(openId, {
+        name: user.name ?? "",
+        expiresInMs: ONE_YEAR_MS,
+      });
 
-    app.get("/api/auth/google/callback",
-        passport.authenticate("google", { session: false, failureRedirect: "/login?error=google" }),
-        async (req: Request, res: Response) => {
-            try {
-                const user = req.user as any;
-                const { generateToken } = await import("./auth/jwt");
-                const token = generateToken({
-                    userId: user.id,
-                    email: user.email,
-                    role: user.role,
-                    openId: user.openId,
-                });
-                const cookieOptions = getSessionCookieOptions(req);
-                res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-                res.redirect("/");
-            } catch (error) {
-                console.error("[Auth] Google callback failed", error);
-                res.redirect("/login?error=google");
-            }
-        }
-    );
+      const cookieOptions = getSessionCookieOptions(req);
+      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      res.redirect("/");
+    } catch (error) {
+      console.error("[OAuth] Google callback failed", error);
+      res.redirect("/login?error=google_failed");
+    }
+  });
 }

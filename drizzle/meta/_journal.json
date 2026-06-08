@@ -71,6 +71,13 @@
       "when": 1779400192549,
       "tag": "0009_woozy_shriek",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1780951712446,
+      "tag": "0010_stale_red_ghost",
+      "breakpoints": true
     }
   ]
 }

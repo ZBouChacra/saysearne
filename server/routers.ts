@@ -1,5 +1,7 @@
 import { getSessionCookieOptions } from "./_core/cookies";
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+import { registerWithEmail, loginWithEmail } from "./_core/oauth";
+import { sdk } from "./_core/sdk";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
@@ -21,6 +23,36 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+    register: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(8),
+        name: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await registerWithEmail(input.email, input.password, input.name);
+        if (!result.success) throw new TRPCError({ code: "CONFLICT", message: result.error });
+        return { success: true };
+      }),
+    login: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const result = await loginWithEmail(input.email, input.password);
+        if (!result.user) throw new TRPCError({ code: "UNAUTHORIZED", message: result.error });
+
+        const sessionToken = await sdk.createSessionToken(result.user.openId, {
+          name: result.user.name ?? "",
+          expiresInMs: ONE_YEAR_MS,
+        });
+
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+
+        return { success: true };
+      }),
   }),
 
   // Categories & Services

@@ -17,6 +17,7 @@ import Chats from "./pages/Chats";
 import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import Login from "./pages/Login";
 
 function Router() {
   return (
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/alerts" component={Alerts} />
       <Route path="/settings" component={Settings} />
       <Route path="/admin" component={Admin} />
+      <Route path="/login" component={Login} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

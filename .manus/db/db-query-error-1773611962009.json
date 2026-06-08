@@ -1,8 +1,0 @@
-{
-  "query": "UPDATE `users` SET `dateOfBirth` = DATE_FORMAT(`dateOfBirth`, '%d/%m/%Y') WHERE `dateOfBirth` IS NOT NULL;\nALTER TABLE `users` MODIFY COLUMN `dateOfBirth` varchar(10);",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3MzNopcSwJXugWj.root --database fSXYjnqatsqbzh69FLd2k9 --execute UPDATE `users` SET `dateOfBirth` = DATE_FORMAT(`dateOfBirth`, '%d/%m/%Y') WHERE `dateOfBirth` IS NOT NULL;\nALTER TABLE `users` MODIFY COLUMN `dateOfBirth` varchar(10);",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1292 (22007) at line 1: Incorrect timestamp value: '?'"
-  ]
-}
